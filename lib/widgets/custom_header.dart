@@ -39,13 +39,6 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                   onChanged: onBranchChanged,
                   hint: 'Seleccionar Sucursal',
                 ),
-                const SizedBox(width: 16),
-                _buildDropdown(
-                  value: selectedSpecies,
-                  items: species,
-                  onChanged: onSpeciesChanged,
-                  hint: 'Seleccionar Especie',
-                ),
               ],
             ),
           ),

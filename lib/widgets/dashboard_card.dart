@@ -7,6 +7,7 @@ class DashboardCard extends StatelessWidget {
   final String value;
   final List<FlSpot> chartData;
   final Color? color;
+  final Color? valueColor;
 
   const DashboardCard({
     super.key,
@@ -14,6 +15,7 @@ class DashboardCard extends StatelessWidget {
     required this.value,
     required this.chartData,
     this.color,
+    this.valueColor,
   });
 
   @override
@@ -37,7 +39,7 @@ class DashboardCard extends StatelessWidget {
             Text(
               value,
               style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    color: AppTheme.textColor,
+                    color: valueColor ?? AppTheme.textColor,
                   ),
             ),
             const SizedBox(height: 12),

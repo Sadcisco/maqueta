@@ -66,6 +66,73 @@ class _ParametrosGeneralesScreenState extends State<ParametrosGeneralesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Definir columnas y datos simulados según el parámetro
+    List<String> columns;
+    List<Map<String, String>> data;
+    switch (widget.parametro) {
+      case 'Centro de costos':
+        columns = ['ID', 'Nombre', 'Descripción', 'Código', 'Estado', 'Acciones'];
+        data = List.generate(5, (i) => {
+          'ID': '${i + 1}',
+          'Nombre': 'Centro ${i + 1}',
+          'Descripción': 'Centro de costos ${i + 1}',
+          'Código': 'CC${100 + i}',
+          'Estado': i % 2 == 0 ? 'Activo' : 'Inactivo',
+        });
+        break;
+      case 'Variedad':
+        columns = ['ID', 'Nombre', 'Especie', 'Ciclo', 'Estado', 'Acciones'];
+        data = List.generate(5, (i) => {
+          'ID': '${i + 1}',
+          'Nombre': 'Variedad ${i + 1}',
+          'Especie': ['Carozo', 'Cereza', 'Ciruela', 'Uva'][i % 4],
+          'Ciclo': i % 2 == 0 ? 'Temprano' : 'Tardío',
+          'Estado': i % 2 == 0 ? 'Activo' : 'Inactivo',
+        });
+        break;
+      case 'Cuarteles':
+        columns = ['ID', 'Nombre', 'Superficie', 'Sucursal', 'Estado', 'Acciones'];
+        data = List.generate(5, (i) => {
+          'ID': '${i + 1}',
+          'Nombre': 'Cuartel ${i + 1}',
+          'Superficie': '${10 + i} ha',
+          'Sucursal': ['SAN MANUEL', 'CULLIPEUMO', 'HOSPITAL'][i % 3],
+          'Estado': i % 2 == 0 ? 'Activo' : 'Inactivo',
+        });
+        break;
+      case 'Temporada':
+        columns = ['ID', 'Nombre', 'Fecha inicio', 'Fecha fin', 'Estado', 'Acciones'];
+        data = List.generate(5, (i) => {
+          'ID': '${i + 1}',
+          'Nombre': 'Temporada ${2020 + i}',
+          'Fecha inicio': '01/0${i + 1}/202${i}',
+          'Fecha fin': '31/12/202${i}',
+          'Estado': i % 2 == 0 ? 'Abierta' : 'Cerrada',
+        });
+        break;
+      case 'Labores':
+        columns = ['ID', 'Nombre', 'Tipo', 'Unidad', 'Estado', 'Acciones'];
+        data = List.generate(5, (i) => {
+          'ID': '${i + 1}',
+          'Nombre': 'Labor ${i + 1}',
+          'Tipo': ['Poda', 'Raleo', 'Cosecha'][i % 3],
+          'Unidad': i % 2 == 0 ? 'ha' : 'jornal',
+          'Estado': i % 2 == 0 ? 'Activo' : 'Inactivo',
+        });
+        break;
+      case 'Tipo de Planta':
+        columns = ['ID', 'Nombre', 'Descripción', 'Estado', 'Acciones'];
+        data = List.generate(5, (i) => {
+          'ID': '${i + 1}',
+          'Nombre': 'Tipo ${i + 1}',
+          'Descripción': 'Tipo de planta ${i + 1}',
+          'Estado': i % 2 == 0 ? 'Activo' : 'Inactivo',
+        });
+        break;
+      default:
+        columns = ['ID', 'Nombre', 'Descripción', 'Acciones'];
+        data = _data;
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.parametro),
@@ -93,19 +160,12 @@ class _ParametrosGeneralesScreenState extends State<ParametrosGeneralesScreen> {
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columns: const [
-                DataColumn(label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Nombre', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Descripción', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Acciones', style: TextStyle(fontWeight: FontWeight.bold))),
-              ],
-              rows: _data.asMap().entries.map((entry) {
+              columns: columns.map((c) => DataColumn(label: Text(c, style: const TextStyle(fontWeight: FontWeight.bold)))).toList(),
+              rows: data.asMap().entries.map((entry) {
                 final i = entry.key;
                 final row = entry.value;
                 return DataRow(cells: [
-                  DataCell(Text(row['ID'] ?? '')),
-                  DataCell(Text(row['Nombre'] ?? '')),
-                  DataCell(Text(row['Descripción'] ?? '')),
+                  ...columns.where((c) => c != 'Acciones').map((c) => DataCell(Text(row[c] ?? ''))),
                   DataCell(Row(
                     children: [
                       IconButton(

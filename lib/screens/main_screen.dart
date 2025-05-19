@@ -16,6 +16,10 @@ import 'admin_permissions_screen.dart';
 import 'package:intl/intl.dart';
 import 'labores_especie_screen.dart';
 import 'parametros_generales_screen.dart';
+import 'riego_general_screen.dart';
+import 'riego_chequeo_screen.dart';
+import 'dart:math';
+import 'rendimiento_tarifas_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -153,6 +157,9 @@ class _MainScreenState extends State<MainScreen> {
     }
     if (_selectedMenu!.title == 'Contratistas') {
       return const ContractorsDashboardScreen();
+    }
+    if (_selectedMenu!.title == 'Riego') {
+      return const RiegoGeneralScreen();
     }
 
     // Handle submenu items
@@ -390,6 +397,44 @@ class _MainScreenState extends State<MainScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // KPIs generales
+                Wrap(
+                  spacing: 18,
+                  runSpacing: 12,
+                  children: const [
+                    _KpiCard(
+                      title: 'Desajuste Total Acumulado CLP',
+                      value: '3 mill.!',
+                      valueColor: Colors.red,
+                      bgColor: Color(0xFFD3D3D3),
+                    ),
+                    _KpiCard(
+                      title: 'Desajuste % Total Acumulado',
+                      value: '0,26 %°',
+                      valueColor: Colors.yellow,
+                      bgColor: Color(0xFFD3D3D3),
+                    ),
+                    _KpiCard(
+                      title: 'Desajuste % Proyectado Temp',
+                      value: '0,25 %°',
+                      valueColor: Colors.yellow,
+                      bgColor: Color(0xFFD3D3D3),
+                    ),
+                    _KpiCard(
+                      title: 'Disponibilidad Real Ppto Temp CLP',
+                      value: '34 mill.!',
+                      valueColor: Colors.green,
+                      bgColor: Color(0xFFD3D3D3),
+                    ),
+                    _KpiCard(
+                      title: 'Ppto Nominal Prox Meses CLP',
+                      value: '38 mill.',
+                      valueColor: Colors.black,
+                      bgColor: Color(0xFFD3D3D3),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
                 // Header/filtro alineado a la derecha
                 Row(
                   children: [
@@ -687,6 +732,9 @@ class _MainScreenState extends State<MainScreen> {
         );
       }
     }
+    if (_selectedMenu!.title == 'Chequeo Riego') {
+      return const ChequeoRiegoScreen();
+    }
     // Handle submenús de Labores
     if (_selectedMenu!.title == 'Carozo' || _selectedMenu!.title == 'Cereza' || _selectedMenu!.title == 'Ciruela' || _selectedMenu!.title == 'Uva') {
       return LaboresEspecieScreen(especie: _selectedMenu!.title);
@@ -697,6 +745,728 @@ class _MainScreenState extends State<MainScreen> {
     ];
     if (parametros.contains(_selectedMenu!.title)) {
       return ParametrosGeneralesScreen(parametro: _selectedMenu!.title);
+    }
+    if (_selectedMenu!.title == 'Planificación') {
+      return const PresupuestoPlanificacionScreen();
+    }
+    if (_selectedMenu!.title == 'Control Presupuestario') {
+      // KPIs simulados
+      final kpis = [
+        {'label': 'Desajuste CLP Total Acumulado', 'value': '13,51 mill.!', 'color': Colors.red, 'chartData': [FlSpot(0, 10), FlSpot(1, 13), FlSpot(2, 15)]} as Map<String, dynamic>,
+        {'label': 'Desajuste % Acumulado', 'value': '1,67 %°', 'color': Colors.yellow[700], 'chartData': [FlSpot(0, 1.2), FlSpot(1, 1.5), FlSpot(2, 1.67)]} as Map<String, dynamic>,
+        {'label': 'Desajuste % Proyectado Temp', 'value': '1,62 %°', 'color': Colors.yellow[700], 'chartData': [FlSpot(0, 1.5), FlSpot(1, 1.6), FlSpot(2, 1.62)]} as Map<String, dynamic>,
+        {'label': 'Ppto Nominal Prox Meses', 'value': '21,99 mill.', 'color': Colors.green[700], 'chartData': [FlSpot(0, 18), FlSpot(1, 20), FlSpot(2, 21.99)]} as Map<String, dynamic>,
+        {'label': 'Disponibilidad Real Ppto Temporada', 'value': '8,48 mill.!', 'color': Colors.green[400], 'chartData': [FlSpot(0, 7), FlSpot(1, 8), FlSpot(2, 8.48)]} as Map<String, dynamic>,
+      ];
+
+      // Datos para gráficos y tablas (simulados)
+      final labores = ['ADMINISTRACION', 'RALEO', 'SACAR SIERPES', 'JEFE DE CAMPO', 'COSECHA', 'AMARRAR'];
+      final desajustes = [16, 16, 15, 10, 8, -20];
+      final meses = ['mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre', 'enero', 'febrero', 'marzo', 'abril'];
+      final controlMensual = [100, 120, 80, 110, 140, 160, 180, 200, 170, 150, 130, 110];
+      final difMensual = [0, 5, -10, 20, -22, 8, 27, 18, 0, 0, 0, 0];
+
+      return DashboardScreen(
+        title: 'Control Presupuestario',
+        subtitle: 'Resumen de control presupuestario y faenas',
+        children: [
+          // KPIs
+          Wrap(
+            spacing: 18,
+            runSpacing: 12,
+            children: kpis.map((k) => DashboardCard(
+              title: k['label'] as String,
+              value: k['value'] as String,
+              valueColor: k['color'] as Color,
+              chartData: k['chartData'] as List<FlSpot>,
+            )).toList(),
+          ),
+          const SizedBox(height: 24),
+          // Gráficos
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Gráfico de desajustes por labor
+              Expanded(
+                child: Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Mayores Desajustes por Labor', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 200,
+                          child: BarChart(
+                            BarChartData(
+                              alignment: BarChartAlignment.spaceAround,
+                              maxY: 20,
+                              minY: -20,
+                              barTouchData: BarTouchData(enabled: false),
+                              titlesData: FlTitlesData(
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 10))),
+                                ),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
+                                    int idx = v.toInt();
+                                    return idx >= 0 && idx < labores.length ? Text(labores[idx], style: const TextStyle(fontSize: 10)) : const SizedBox();
+                                  }),
+                                ),
+                                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              ),
+                              gridData: FlGridData(show: true),
+                              barGroups: List.generate(labores.length, (i) => BarChartGroupData(x: i, barRods: [
+                                BarChartRodData(toY: desajustes[i].toDouble(), color: desajustes[i] < 0 ? Colors.red : Colors.green, width: 16, borderRadius: BorderRadius.circular(4)),
+                              ])),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Gráfico de control mensual
+              Expanded(
+                child: Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Control Presupuestario Mensual', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 200,
+                          child: Stack(
+                            children: [
+                              BarChart(
+                                BarChartData(
+                                  alignment: BarChartAlignment.spaceAround,
+                                  maxY: 220,
+                                  minY: 0,
+                                  barTouchData: BarTouchData(enabled: false),
+                                  titlesData: FlTitlesData(
+                                    leftTitles: AxisTitles(
+                                      sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 10))),
+                                    ),
+                                    bottomTitles: AxisTitles(
+                                      sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
+                                        int idx = v.toInt();
+                                        return idx >= 0 && idx < meses.length ? Text(meses[idx], style: const TextStyle(fontSize: 10)) : const SizedBox();
+                                      }),
+                                    ),
+                                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                  ),
+                                  gridData: FlGridData(show: true),
+                                  barGroups: List.generate(meses.length, (i) => BarChartGroupData(x: i, barRods: [
+                                    BarChartRodData(toY: controlMensual[i].toDouble(), color: Colors.green[700], width: 16, borderRadius: BorderRadius.circular(4)),
+                                  ])),
+                                ),
+                              ),
+                              // Línea de diferencia superpuesta
+                              Positioned.fill(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 8, bottom: 8),
+                                  child: LineChart(
+                                    LineChartData(
+                                      minY: -40,
+                                      maxY: 220,
+                                      titlesData: FlTitlesData(show: false),
+                                      gridData: FlGridData(show: false),
+                                      lineBarsData: [
+                                        LineChartBarData(
+                                          spots: List.generate(meses.length, (i) => FlSpot(i.toDouble(), controlMensual[i].toDouble() + difMensual[i].toDouble())),
+                                          isCurved: true,
+                                          color: Colors.blue,
+                                          barWidth: 2,
+                                          dotData: FlDotData(show: true),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+    if (_selectedMenu!.title == 'Estado Tarjas' || _selectedMenu!.title == 'Estado tarja') {
+      return const EstadoTarjasScreen();
+    }
+    if (_selectedMenu!.title == 'Rendimiento y tarifas') {
+      return const RendimientoTarifasScreen();
+    }
+    if (_selectedMenu!.title == 'Faenas') {
+      // KPIs simulados para Faenas
+      final kpis = [
+        {'label': 'Labores Pendientes', 'value': '24', 'color': Colors.orange[700], 'chartData': [FlSpot(0, 30), FlSpot(1, 25), FlSpot(2, 24)]} as Map<String, dynamic>,
+        {'label': 'Labores en Ejecución', 'value': '12', 'color': Colors.blue[700], 'chartData': [FlSpot(0, 8), FlSpot(1, 10), FlSpot(2, 12)]} as Map<String, dynamic>,
+        {'label': 'Labores Finalizadas', 'value': '156', 'color': Colors.green[700], 'chartData': [FlSpot(0, 120), FlSpot(1, 140), FlSpot(2, 156)]} as Map<String, dynamic>,
+        {'label': 'Rendimiento Promedio', 'value': '92%', 'color': Colors.green[400], 'chartData': [FlSpot(0, 85), FlSpot(1, 89), FlSpot(2, 92)]} as Map<String, dynamic>,
+        {'label': 'Personal en Campo', 'value': '45', 'color': Colors.purple[700], 'chartData': [FlSpot(0, 40), FlSpot(1, 42), FlSpot(2, 45)]} as Map<String, dynamic>,
+      ];
+
+      // Datos para gráficos
+      final tiposLabores = ['Poda', 'Riego', 'Fertilización', 'Cosecha', 'Control Plagas', 'Mantenimiento'];
+      final horasPorLabor = [120, 85, 45, 200, 60, 75];
+      final eficienciaPorLabor = [95, 88, 92, 85, 90, 87];
+      final meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      final laboresPorMes = [45, 52, 48, 55, 60, 58, 62, 65, 70, 68, 72, 75];
+      final personalPorMes = [35, 38, 40, 42, 45, 43, 45, 47, 48, 46, 45, 45];
+
+      return DashboardScreen(
+        title: 'Faenas',
+        subtitle: 'Resumen de actividades y labores agrícolas',
+        children: [
+          // KPIs
+          Wrap(
+            spacing: 18,
+            runSpacing: 12,
+            children: kpis.map((k) => DashboardCard(
+              title: k['label'] as String,
+              value: k['value'] as String,
+              valueColor: k['color'] as Color,
+              chartData: k['chartData'] as List<FlSpot>,
+            )).toList(),
+          ),
+          const SizedBox(height: 24),
+          // Gráficos
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Gráfico de horas por tipo de labor
+              Expanded(
+                child: Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Horas de Trabajo por Tipo de Labor', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 200,
+                          child: BarChart(
+                            BarChartData(
+                              alignment: BarChartAlignment.spaceAround,
+                              maxY: 250,
+                              minY: 0,
+                              barTouchData: BarTouchData(enabled: false),
+                              titlesData: FlTitlesData(
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} hrs', style: const TextStyle(fontSize: 10))),
+                                ),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
+                                    int idx = v.toInt();
+                                    return idx >= 0 && idx < tiposLabores.length ? Text(tiposLabores[idx], style: const TextStyle(fontSize: 10)) : const SizedBox();
+                                  }),
+                                ),
+                                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              ),
+                              gridData: FlGridData(show: true),
+                              barGroups: List.generate(tiposLabores.length, (i) => BarChartGroupData(x: i, barRods: [
+                                BarChartRodData(toY: horasPorLabor[i].toDouble(), color: Colors.blue[700], width: 16, borderRadius: BorderRadius.circular(4)),
+                              ])),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Gráfico de labores y personal por mes
+              Expanded(
+                child: Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Evolución de Labores y Personal por Mes', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 200,
+                          child: LineChart(
+                            LineChartData(
+                              minY: 0,
+                              maxY: 100,
+                              titlesData: FlTitlesData(
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()}', style: const TextStyle(fontSize: 10))),
+                                ),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
+                                    int idx = v.toInt();
+                                    return idx >= 0 && idx < meses.length ? Text(meses[idx], style: const TextStyle(fontSize: 10)) : const SizedBox();
+                                  }),
+                                ),
+                                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              ),
+                              gridData: FlGridData(show: true),
+                              lineBarsData: [
+                                LineChartBarData(
+                                  spots: List.generate(meses.length, (i) => FlSpot(i.toDouble(), laboresPorMes[i].toDouble())),
+                                  isCurved: true,
+                                  color: Colors.green[700],
+                                  barWidth: 3,
+                                  dotData: FlDotData(show: true),
+                                ),
+                                LineChartBarData(
+                                  spots: List.generate(meses.length, (i) => FlSpot(i.toDouble(), personalPorMes[i].toDouble())),
+                                  isCurved: true,
+                                  color: Colors.blue[700],
+                                  barWidth: 3,
+                                  dotData: FlDotData(show: true),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(width: 16, height: 8, color: Colors.green[700]),
+                            const SizedBox(width: 4),
+                            const Text('Labores', style: TextStyle(fontSize: 12)),
+                            const SizedBox(width: 16),
+                            Container(width: 16, height: 8, color: Colors.blue[700]),
+                            const SizedBox(width: 4),
+                            const Text('Personal', style: TextStyle(fontSize: 12)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          // Gráfico de eficiencia por labor
+          Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Rendimiento por Tipo de Labor', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 200,
+                    child: BarChart(
+                      BarChartData(
+                        alignment: BarChartAlignment.spaceAround,
+                        maxY: 100,
+                        minY: 0,
+                        barTouchData: BarTouchData(enabled: false),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()}%', style: const TextStyle(fontSize: 10))),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
+                              int idx = v.toInt();
+                              return idx >= 0 && idx < tiposLabores.length ? Text(tiposLabores[idx], style: const TextStyle(fontSize: 10)) : const SizedBox();
+                            }),
+                          ),
+                          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        ),
+                        gridData: FlGridData(show: true),
+                        barGroups: List.generate(tiposLabores.length, (i) => BarChartGroupData(x: i, barRods: [
+                          BarChartRodData(toY: eficienciaPorLabor[i].toDouble(), color: Colors.orange[700], width: 16, borderRadius: BorderRadius.circular(4)),
+                        ])),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    if (_selectedMenu!.title == 'Estimación') {
+      // Datos simulados para los filtros
+      final sucursales = ['Sucursal 1', 'Sucursal 2', 'Sucursal 3'];
+      final variedades = ['Nectarines', 'Uvas', 'Duraznos', 'Ciruelas', 'Cerezas'];
+      final especies = ['Especie 1', 'Especie 2'];
+      final cuarteles = ['Cuartel 1', 'Cuartel 2'];
+      String sucursalSel = sucursales[0];
+      String variedadSel = variedades[0];
+      String especieSel = especies[0];
+      String cuartelSel = cuarteles[0];
+
+      // KPIs principales
+      final kpisFruta = [
+        {'label': 'NECTARINES', 'value': '785.068'},
+        {'label': 'UVAS', 'value': '772.040'},
+        {'label': 'DURAZNOS', 'value': '272.729'},
+        {'label': 'CIRUELAS', 'value': '168.426'},
+        {'label': 'CEREZAS', 'value': '115.620'},
+      ];
+      // KPIs secundarios
+      final kpisSec = [
+        {'label': 'CAJAS ESTIMADAS PRESUPUESTO', 'value': '2.122.676'},
+        {'label': '% VARIACIÓN CAJAS PROYECTADAS', 'value': '12,25%', 'color': Colors.green},
+        {'label': 'CAJAS PROYECTADAS', 'value': '2.382.786'},
+        {'label': '% CUARTELES CON PROYECCIÓN', 'value': '95%', 'color': Colors.green},
+      ];
+      // Datos tabla detalle
+      final detalle = [
+        {
+          'cuartel': 'ANGELENO B 2 A SF',
+          'presupuesto': '6.000',
+          'postraleo': '2.500',
+          'proyectadas': '2.653',
+          'totales': '7.190',
+          'variacion': '-56%'
+        },
+        {
+          'cuartel': 'ARTIC RED B 8 PC',
+          'presupuesto': '5.000',
+          'postraleo': '2.500',
+          'proyectadas': '4.588',
+          'totales': '25.463',
+          'variacion': '-8%'
+        },
+      ];
+
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Filtros superiores
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButton<String>(
+                    value: sucursalSel,
+                    items: sucursales.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                    onChanged: (_) {},
+                    isExpanded: true,
+                    hint: const Text('Sucursal'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DropdownButton<String>(
+                    value: variedadSel,
+                    items: variedades.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
+                    onChanged: (_) {},
+                    isExpanded: true,
+                    hint: const Text('Variedad'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DropdownButton<String>(
+                    value: especieSel,
+                    items: especies.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                    onChanged: (_) {},
+                    isExpanded: true,
+                    hint: const Text('Especie'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DropdownButton<String>(
+                    value: cuartelSel,
+                    items: cuarteles.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                    onChanged: (_) {},
+                    isExpanded: true,
+                    hint: const Text('Cuartel'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            // Título principal
+            Center(
+              child: Text(
+                'CAJAS  ESTIMADAS PRESUPUESTO',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // KPIs principales
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: kpisFruta.map((k) => Expanded(
+                child: Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    child: Column(
+                      children: [
+                        Text(k['label'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        const SizedBox(height: 6),
+                        Text(k['value'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                      ],
+                    ),
+                  ),
+                ),
+              )).toList(),
+            ),
+            const SizedBox(height: 8),
+            // KPIs secundarios
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: kpisSec.map((k) => Expanded(
+                child: Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    child: Column(
+                      children: [
+                        Text(k['label'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        const SizedBox(height: 6),
+                        Text(
+                          k['value'] as String,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: (k['color'] as Color?) ?? Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )).toList(),
+            ),
+            const SizedBox(height: 18),
+            // Tabla de detalle
+            Text('DETALLE ESTIMACIÓN CAJAS', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Card(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
+                  columns: const [
+                    DataColumn(label: Text('CUARTEL')),
+                    DataColumn(label: Text('CAJAS/Ha PRESUPUESTO')),
+                    DataColumn(label: Text('CAJAS/Ha ESTIMADAS POSTRALEO')),
+                    DataColumn(label: Text('CAJAS/Ha PROYECTADAS')),
+                    DataColumn(label: Text('CAJAS TOTALES PROYECTADAS')),
+                    DataColumn(label: Text('% VARIACIÓN PROYECCIÓN VS ESTIMACIÓN')),
+                  ],
+                  rows: detalle.map((d) => DataRow(cells: [
+                    DataCell(Text(d['cuartel']!)),
+                    DataCell(Text(d['presupuesto']!)),
+                    DataCell(Text(d['postraleo']!)),
+                    DataCell(Text(d['proyectadas']!)),
+                    DataCell(Text(d['totales']!)),
+                    DataCell(Text(d['variacion']!, style: TextStyle(color: d['variacion']!.contains('-') ? Colors.red : Colors.green))),
+                  ])).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    if (_selectedMenu!.title == 'Producción') {
+      // Filtros simulados
+      final sucursales = ['MAITEN GIGANTE', 'CULLIPEUMO', 'HOSPITAL', 'SANTA VICTORIA'];
+      final especies = ['Durazno', 'Nectarina', 'Ciruela', 'Cereza', 'Uva'];
+      final variedades = ['AUTUMN CRISP', 'ALLISON', 'PRISTINE', 'CRIMSON'];
+      final edades = ['1 año', '2 años', '3 años', '4 años'];
+      final cuarteles = ['AUTUMN CRISP C 62 MG', 'ALLISON CULLIP', 'PRISTINE C 28 HO'];
+      final estados = ['COSECHADO', 'EN PROCESO', 'PENDIENTE'];
+      String sucursalSel = sucursales[0];
+      String especieSel = especies[0];
+      String variedadSel = variedades[0];
+      String edadSel = edades[0];
+      String cuartelSel = cuarteles[0];
+      String estadoSel = estados[0];
+
+      // KPIs simulados
+      final kpis = [
+        {'label': 'CAJAS DURAZNOS', 'value': '263.561', 'var': '-1.8%', 'color': Colors.red},
+        {'label': 'CAJAS NECTARINES', 'value': '810.698', 'var': '+6.8%', 'color': Colors.green},
+        {'label': 'CAJAS CIRUELAS', 'value': '157.150', 'var': '+9.3%', 'color': Colors.green},
+        {'label': 'CAJAS CEREZAS', 'value': '176.180', 'var': '+41.8%', 'color': Colors.green},
+        {'label': 'CAJAS UVAS', 'value': '797.120', 'var': '+4.1%', 'color': Colors.green},
+        {'label': 'CAJAS TOTALES', 'value': '2.204.708', 'var': '+6.9%', 'color': Colors.green},
+      ];
+
+      // Tabla detalle diario cosechas
+      final tablaCosechas = [
+        {'sucursal': 'MAITEN GIGANTE', 'cuartel': 'AUTUMN CRISP C 62 MG', 'fecha': '4 abr 2025', 'lotes': '46', 'kg': '16.016', 'pesaje': '98%', 'despacho': '0%'},
+        {'sucursal': 'CULLIPEUMO', 'cuartel': 'ALLISON CULLIP', 'fecha': '4 abr 2025', 'lotes': '179', 'kg': '58.435', 'pesaje': '49%', 'despacho': '0%'},
+        {'sucursal': 'MAITEN GIGANTE', 'cuartel': 'AUTUMN CRISP C 62 MG', 'fecha': '3 abr 2025', 'lotes': '257', 'kg': '87.288', 'pesaje': '69%', 'despacho': '0%'},
+        {'sucursal': 'HOSPITAL', 'cuartel': 'PRISTINE C 28 HO', 'fecha': '3 abr 2025', 'lotes': '70', 'kg': '21.988', 'pesaje': '100%', 'despacho': '100%'},
+        {'sucursal': 'HOSPITAL', 'cuartel': 'PRISTINE C 21 HO', 'fecha': '3 abr 2025', 'lotes': '35', 'kg': '10.371', 'pesaje': '100%', 'despacho': '100%'},
+        {'sucursal': 'SANTA VICTORIA', 'cuartel': 'CRIMSON C 12 A PA', 'fecha': '2 abr 2025', 'lotes': '1.850', 'kg': '100%', 'pesaje': '100%', 'despacho': '100%'},
+        // ... más filas simuladas ...
+      ];
+      // Tabla detalle proceso de embalaje
+      final tablaEmbalaje = [
+        {'cuartel': 'ALLISON CULLIP', 'estado': 'COSECHADO', 'ultimo': '4 abr 2025', 'cajas_ha': '35.415', 'cajas_prod': '42.351', 'cajas_ha_prod': '5.381', 'var_est': '29%', 'emb_esp': '95%', 'emb_real': '94%', 'var_emb': '-1%'},
+        {'cuartel': 'AUTUMN CRISP C 62 MG', 'estado': 'COSECHADO', 'ultimo': '4 abr 2025', 'cajas_ha': '17.000', 'cajas_prod': '21.891', 'cajas_ha_prod': '5.151', 'var_est': '29%', 'emb_esp': '95%', 'emb_real': '94%', 'var_emb': '-1%'},
+        // ... más filas simuladas ...
+      ];
+
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Filtros superiores
+            Row(
+              children: [
+                Expanded(child: DropdownButton<String>(value: sucursalSel, items: sucursales.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (_) {}, isExpanded: true, hint: const Text('SUCURSAL'))),
+                const SizedBox(width: 8),
+                Expanded(child: DropdownButton<String>(value: especieSel, items: especies.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (_) {}, isExpanded: true, hint: const Text('ESPECIE'))),
+                const SizedBox(width: 8),
+                Expanded(child: DropdownButton<String>(value: variedadSel, items: variedades.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(), onChanged: (_) {}, isExpanded: true, hint: const Text('VARIEDAD'))),
+                const SizedBox(width: 8),
+                Expanded(child: DropdownButton<String>(value: edadSel, items: edades.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (_) {}, isExpanded: true, hint: const Text('EDAD'))),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // KPIs
+            Center(
+              child: Text('BALANCE CAJAS  CUARTELES TERMINADOS', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: kpis.map((k) => Expanded(
+                child: Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Column(
+                      children: [
+                        Text(k['label'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        const SizedBox(height: 4),
+                        Text(k['value'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                        Text(k['var'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: k['color'] as Color)),
+                      ],
+                    ),
+                  ),
+                ),
+              )).toList(),
+            ),
+            const SizedBox(height: 8),
+            // Filtros inferiores
+            Row(
+              children: [
+                Expanded(child: DropdownButton<String>(value: cuartelSel, items: cuarteles.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(), onChanged: (_) {}, isExpanded: true, hint: const Text('CUARTEL'))),
+                const SizedBox(width: 8),
+                Expanded(child: Card(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), child: Text('FECHA', style: Theme.of(context).textTheme.bodyMedium)))),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Tabla detalle diario cosechas
+            Text('DETALLE DIARIO COSECHAS', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Card(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
+                  columns: const [
+                    DataColumn(label: Text('SUCURSAL')),
+                    DataColumn(label: Text('CUARTEL')),
+                    DataColumn(label: Text('FECHA COSECHA')),
+                    DataColumn(label: Text('LOTES CREADOS')),
+                    DataColumn(label: Text('KG COSECHA')),
+                    DataColumn(label: Text('% PESAJE')),
+                    DataColumn(label: Text('% DESPACHO')),
+                  ],
+                  rows: tablaCosechas.map((d) => DataRow(cells: [
+                    DataCell(Text(d['sucursal'] as String)),
+                    DataCell(Text(d['cuartel'] as String)),
+                    DataCell(Text(d['fecha'] as String)),
+                    DataCell(Text(d['lotes'] as String)),
+                    DataCell(Text(d['kg'] as String)),
+                    DataCell(Text(d['pesaje'] as String)),
+                    DataCell(Text(d['despacho'] as String)),
+                  ])).toList(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(child: DropdownButton<String>(value: estadoSel, items: estados.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (_) {}, isExpanded: true, hint: const Text('ESTADO'))),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Tabla detalle proceso de embalaje
+            Text('DETALLE PROCESO DE EMBALAJE', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Card(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
+                  columns: const [
+                    DataColumn(label: Text('CUARTEL')),
+                    DataColumn(label: Text('ESTADO')),
+                    DataColumn(label: Text('ULTIMO PROCESO')),
+                    DataColumn(label: Text('Cajas estimadas/Ha')),
+                    DataColumn(label: Text('Cajas producidas')),
+                    DataColumn(label: Text('Cajas producidas/Ha')),
+                    DataColumn(label: Text('% VARIACIÓN ESTIMACIÓN')),
+                    DataColumn(label: Text('% Embalaje esperado')),
+                    DataColumn(label: Text('% Embalaje')),
+                    DataColumn(label: Text('% Variación embalaje')),
+                  ],
+                  rows: tablaEmbalaje.map((d) => DataRow(cells: [
+                    DataCell(Text(d['cuartel'] as String)),
+                    DataCell(Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: d['estado'] == 'COSECHADO' ? Colors.green[200] : Colors.orange[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(d['estado'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    )),
+                    DataCell(Text(d['ultimo'] as String)),
+                    DataCell(Text(d['cajas_ha'] as String)),
+                    DataCell(Text(d['cajas_prod'] as String)),
+                    DataCell(Text(d['cajas_ha_prod'] as String)),
+                    DataCell(Text(d['var_est'] as String)),
+                    DataCell(Text(d['emb_esp'] as String)),
+                    DataCell(Text(d['emb_real'] as String)),
+                    DataCell(Text(d['var_emb'] as String)),
+                  ])).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
     // Default case
     return Center(
@@ -933,6 +1703,789 @@ class _MainScreenState extends State<MainScreen> {
         selectedMenu: _selectedMenu,
       ),
       body: _buildDashboard(),
+    );
+  }
+}
+
+class _KpiCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final Color valueColor;
+  final Color bgColor;
+  const _KpiCard({required this.title, required this.value, required this.valueColor, required this.bgColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 190,
+      height: 90,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [bgColor.withOpacity(0.95), Colors.white.withOpacity(0.85)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
+        ],
+        border: Border(
+          bottom: BorderSide(color: valueColor, width: 5),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Stack(
+        children: [
+          // Ícono decorativo
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Icon(Icons.trending_up, color: valueColor.withOpacity(0.18), size: 32),
+          ),
+          // Contenido principal
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87)),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: valueColor,
+                    shadows: [Shadow(color: Colors.black12, blurRadius: 2)],
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PresupuestoPlanificacionScreen extends StatefulWidget {
+  const PresupuestoPlanificacionScreen({super.key});
+
+  @override
+  State<PresupuestoPlanificacionScreen> createState() => _PresupuestoPlanificacionScreenState();
+}
+
+class _PresupuestoPlanificacionScreenState extends State<PresupuestoPlanificacionScreen> {
+  bool mesesExpandido = false;
+
+  // Columnas fijas
+  final List<String> columnasFijas = [
+    'Temporada', 'Tipo Centro de costo', 'Centro de Costo', 'Cuartel', 'Sector de Riego', 'Labor',
+    'Unidad de Control', 'Tipo Pago', 'Tarifa / sueldo', 'Cantidad del CeCo', 'Rend x j/h', 'Cantidad de Jornadas', 'Líquido por Trabajador'
+  ];
+  // Meses
+  final List<String> meses = [
+    'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+    'Enero', 'Febrero', 'Marzo', 'Abril'
+  ];
+  // Columnas finales
+  final List<String> columnasFinales = [
+    'Cantidad Presupuestada', 'Total Presupuesto CLP', 'Ppto/Ha USD', 'OBSERVACIONES'
+  ];
+
+  // Datos simulados
+  List<Map<String, dynamic>> data = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Generar datos de prueba
+    data = List.generate(5, (i) => {
+      'Temporada': 'TEMP 25-26',
+      'Tipo Centro de costo': ['ADMINISTRATIVO', 'PRODUCTIVO', 'MAQUINARIA', 'SECTOR RIEGO'][i % 4],
+      'Centro de Costo': ['CAMPO CHOCALAN', 'SAN C3 IC CH', 'TRACT SAME FRUTTETO 1 CH', 'SECTOR 1 CH'][i % 4],
+      'Cuartel': ['SAN C3 IC CH', 'SAN C3 IC CH', '', ''][i % 4],
+      'Sector de Riego': ['', '', '', 'SECTOR 1 CH'][i % 4],
+      'Labor': ['ADMINISTRACION', 'PODEA', 'RALEO', 'COSECHA', 'MANT EQUIPOS/MAQUINARIA', 'RIEGO TECNIFICADO'][i % 6],
+      'Unidad de Control': ['MENSUAL', 'PLANTA', 'KG', 'JORNADA', 'HORAS'][i % 5],
+      'Tipo Pago': ['SUELDO MENSUAL', 'CONTRATISTA', 'TRATO PROPIOS', 'SUELDO DIARIO'][i % 4],
+      'Tarifa / sueldo': Random().nextInt(25000) + 1500,
+      'Cantidad del CeCo': Random().nextInt(3000) + 100,
+      'Rend x j/h': (Random().nextDouble() * 10).toStringAsFixed(1),
+      'Cantidad de Jornadas': Random().nextInt(100) + 1,
+      'Líquido por Trabajador': Random().nextInt(2000000) + 100000,
+      ...{
+        for (var mes in meses)
+          mes: mesesExpandido ? (Random().nextDouble() > 0.5 ? (Random().nextDouble() * 3).toStringAsFixed(1) : '') : '',
+      },
+      'Cantidad Presupuestada': Random().nextInt(2000) + 1,
+      'Total Presupuesto CLP': Random().nextInt(20000000) + 1000000,
+      'Ppto/Ha USD': (Random().nextDouble() * 10000).toStringAsFixed(1),
+      'OBSERVACIONES': '',
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Columnas a mostrar
+    final List<String> columnas = [
+      ...columnasFijas,
+      if (mesesExpandido) ...meses else 'Meses',
+      ...columnasFinales,
+    ];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Planificación Presupuestaria'),
+        backgroundColor: Colors.green[700],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.add),
+                  label: const Text('Agregar fila'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.upload_file),
+                  label: const Text('Carga masiva (CSV)'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700]),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => setState(() => mesesExpandido = !mesesExpandido),
+                  icon: Icon(mesesExpandido ? Icons.unfold_less : Icons.unfold_more),
+                  label: Text(mesesExpandido ? 'Comprimir meses' : 'Expandir meses'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Expanded(
+              child: Card(
+                elevation: 2,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    headingRowColor: MaterialStateProperty.all(Colors.green[700]),
+                    headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                    columns: columnas.map((c) => DataColumn(label: Text(c, maxLines: 2, overflow: TextOverflow.ellipsis))).toList(),
+                    rows: data.map((row) {
+                      return DataRow(
+                        cells: columnas.map((c) => DataCell(Text(row[c]?.toString() ?? '', style: const TextStyle(fontSize: 13)))).toList(),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PresupuestoControlDashboardScreen extends StatelessWidget {
+  const PresupuestoControlDashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // KPIs simulados
+    final kpis = [
+      {'label': 'Desajuste CLP Total Acumulado', 'value': '13,51 mill.!', 'color': Colors.red} as Map<String, dynamic>,
+      {'label': 'Desajuste % Acumulado', 'value': '1,67 %°', 'color': Colors.yellow[700]} as Map<String, dynamic>,
+      {'label': 'Desajuste % Proyectado Temp', 'value': '1,62 %°', 'color': Colors.yellow[700]} as Map<String, dynamic>,
+      {'label': 'Ppto Nominal Prox Meses', 'value': '21,99 mill.', 'color': Colors.green[700]} as Map<String, dynamic>,
+      {'label': 'Disponibilidad Real Ppto Temporada', 'value': '8,48 mill.!', 'color': Colors.green[400]} as Map<String, dynamic>,
+    ];
+    // Datos para gráficos y tablas (simulados)
+    final labores = ['ADMINISTRACION', 'RALEO', 'SACAR SIERPES', 'JEFE DE CAMPO', 'COSECHA', 'AMARRAR'];
+    final desajustes = [16, 16, 15, 10, 8, -20];
+    final meses = ['mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre', 'enero', 'febrero', 'marzo', 'abril'];
+    final controlMensual = [100, 120, 80, 110, 140, 160, 180, 200, 170, 150, 130, 110];
+    final difMensual = [0, 5, -10, 20, -22, 8, 27, 18, 0, 0, 0, 0];
+    final tablaManoObra = List.generate(6, (i) => {
+      'Labor': labores[i],
+      'Costo Acumulado CLP': (Random().nextInt(80000000) + 10000000).toString(),
+      'Ppto Acumulado CLP': (Random().nextInt(60000000) + 10000000).toString(),
+      'Diferencia CLP': (Random().nextInt(20000000) - 10000000).toString(),
+      'Desajuste %': (Random().nextDouble() * 100).toStringAsFixed(1),
+      'Costo/Ha USD': (Random().nextInt(1000) + 100).toString(),
+      'Ppto/Ha USD': (Random().nextInt(1000) + 100).toString(),
+      'Dif/Ha USD': (Random().nextInt(500) - 250).toString(),
+      'Ppto Futuro CLP': (Random().nextInt(5000000)).toString(),
+      'Presupuesto Temp CLP': (Random().nextInt(80000000) + 10000000).toString(),
+      'Disponibilidad CLP': (Random().nextInt(20000000) - 10000000).toString(),
+    });
+    final tablaRendimientos = List.generate(3, (i) => {
+      'Descripción': ['COSECHA', 'CONTROL DE CALIDAD', 'RALEO'][i],
+      'Centro de Costo': '796 P3 MA CH',
+      'Tipo personal': ['Contratista', 'Contratista', 'Contratista'][i],
+      'Unidad': ['BINS', 'HORAS A TRATO', 'BINS'][i],
+      'Mes': '1',
+      'Cant trabajadores': '160',
+      'Rend p/p prom': '1,8',
+      'Líquido prom': '28.542',
+      'Tarifa Ppto prom': '25.000',
+      'Tarifa Real prom': '25.000',
+      'Rend Total': '274,0',
+      'Rend Total Ppto': '274,0',
+      'Dif Tarifa': '0',
+      'Dif Rendimiento': '0',
+    });
+    final especies = ['CEREZAS', 'CIRUELAS', 'DAMASCO', 'DURAZNOS', 'NECTARINES', 'SIN ESPECIE', 'UVA'];
+    final laboresFiltro = ['ADMINISTRACION', 'AMARRA D FORM Y DESBROTA', 'AMARRA DE FORMACION', 'AMARRAR', 'APLICAR AGROQUIMICO', 'APLICAR HERBICIDA'];
+    final ceCoDesc = ['795 P3 MA CH', '796 P3 MA CH', 'ALLISON P 28 CHOC', 'ANGELENO 20-12 C CHOC', 'APR 1 P3 MA CH'];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Control Presupuestario'),
+        backgroundColor: Colors.green[700],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Panel principal
+            Expanded(
+              flex: 4,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // KPIs
+                    Wrap(
+                      spacing: 18,
+                      runSpacing: 12,
+                      children: kpis.map((k) => _KpiCard(title: k['label'] as String, value: k['value'] as String, valueColor: k['color'] as Color, bgColor: Colors.grey[200]!)).toList(),
+                    ),
+                    const SizedBox(height: 12),
+                    // Gráficos pequeños alineados horizontalmente
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Gráfico de barras horizontales (más pequeño y con valores a la derecha)
+                        Expanded(
+                          child: Card(
+                            elevation: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Mayores Desajustes por Labor MO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                  SizedBox(
+                                    height: 80,
+                                    child: Stack(
+                                      children: [
+                                        BarChart(
+                                          BarChartData(
+                                            alignment: BarChartAlignment.spaceAround,
+                                            maxY: 20,
+                                            minY: -20,
+                                            barTouchData: BarTouchData(enabled: false),
+                                            titlesData: FlTitlesData(
+                                              leftTitles: AxisTitles(
+                                                sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 8))),
+                                              ),
+                                              bottomTitles: AxisTitles(
+                                                sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
+                                                  int idx = v.toInt();
+                                                  return idx >= 0 && idx < labores.length ? Text(labores[idx], style: const TextStyle(fontSize: 8)) : const SizedBox();
+                                                }),
+                                              ),
+                                              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                            ),
+                                            gridData: FlGridData(show: true),
+                                            barGroups: List.generate(labores.length, (i) => BarChartGroupData(x: i, barRods: [
+                                              BarChartRodData(toY: desajustes[i].toDouble(), color: desajustes[i] < 0 ? Colors.red : Colors.green, width: 8, borderRadius: BorderRadius.circular(2)),
+                                            ])),
+                                          ),
+                                        ),
+                                        // Valores a la derecha de cada barra
+                                        Positioned.fill(
+                                          child: LayoutBuilder(
+                                            builder: (context, constraints) {
+                                              return Column(
+                                                children: List.generate(labores.length, (i) {
+                                                  return Expanded(
+                                                    child: Row(
+                                                      children: [
+                                                        const SizedBox(width: 4),
+                                                        Expanded(child: Container()),
+                                                        Text('${desajustes[i] > 0 ? '' : ''}${desajustes[i]} mill.', style: TextStyle(fontSize: 9, color: desajustes[i] < 0 ? Colors.red : Colors.green, fontWeight: FontWeight.bold)),
+                                                        const SizedBox(width: 2),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Gráfico de control mensual (barras y línea superpuesta, más pequeño)
+                        Expanded(
+                          child: Card(
+                            elevation: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Control Presupuestario Mensual', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                  SizedBox(
+                                    height: 80,
+                                    child: Stack(
+                                      children: [
+                                        BarChart(
+                                          BarChartData(
+                                            alignment: BarChartAlignment.spaceAround,
+                                            maxY: 220,
+                                            minY: 0,
+                                            barTouchData: BarTouchData(enabled: false),
+                                            titlesData: FlTitlesData(
+                                              leftTitles: AxisTitles(
+                                                sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 8))),
+                                              ),
+                                              bottomTitles: AxisTitles(
+                                                sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
+                                                  int idx = v.toInt();
+                                                  return idx >= 0 && idx < meses.length ? Text(meses[idx], style: const TextStyle(fontSize: 8)) : const SizedBox();
+                                                }),
+                                              ),
+                                              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                            ),
+                                            gridData: FlGridData(show: true),
+                                            barGroups: List.generate(meses.length, (i) => BarChartGroupData(x: i, barRods: [
+                                              BarChartRodData(toY: controlMensual[i].toDouble(), color: Colors.green[700], width: 8, borderRadius: BorderRadius.circular(2)),
+                                            ])),
+                                          ),
+                                        ),
+                                        // Línea de diferencia superpuesta
+                                        Positioned.fill(
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(top: 8, bottom: 8),
+                                            child: LineChart(
+                                              LineChartData(
+                                                minY: -40,
+                                                maxY: 220,
+                                                titlesData: FlTitlesData(show: false),
+                                                gridData: FlGridData(show: false),
+                                                lineBarsData: [
+                                                  LineChartBarData(
+                                                    spots: List.generate(meses.length, (i) => FlSpot(i.toDouble(), controlMensual[i].toDouble() + difMensual[i].toDouble())),
+                                                    isCurved: true,
+                                                    color: Colors.orange,
+                                                    barWidth: 1.5,
+                                                    dotData: FlDotData(show: false),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Tablas debajo, ocupando todo el ancho, con fuente más pequeña
+                    Card(
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Detalle Costos Mano de Obra', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: DataTable(
+                                headingRowColor: MaterialStateProperty.all(Colors.green[700]),
+                                headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                dataRowColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+                                  if (states.contains(MaterialState.selected)) {
+                                    return Colors.green[100];
+                                  }
+                                  return null;
+                                }),
+                                columns: [
+                                  'Labor', 'Costo Acumulado CLP', 'Ppto Acumulado CLP', 'Diferencia CLP', 'Desajuste %', 'Costo/Ha USD', 'Ppto/Ha USD', 'Dif/Ha USD', 'Ppto Futuro CLP', 'Presupuesto Temp CLP', 'Disponibilidad CLP'
+                                ].map((c) => DataColumn(label: Text(c, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10)))).toList(),
+                                rows: tablaManoObra.asMap().entries.map((entry) {
+                                  final i = entry.key;
+                                  final row = entry.value;
+                                  final isTotal = i == tablaManoObra.length - 1;
+                                  return DataRow(
+                                    color: MaterialStateProperty.all(i % 2 == 0 ? Colors.grey[50] : Colors.white),
+                                    cells: row.entries.map((e) {
+                                      final isRed = e.key == 'Diferencia CLP' || e.key == 'Desajuste %';
+                                      return DataCell(Container(
+                                        color: isRed && double.tryParse(row['Desajuste %']?.toString() ?? '0') != null && double.parse(row['Desajuste %']?.toString() ?? '0') > 100 ? Colors.red[100] : null,
+                                        child: Text(e.value.toString(), style: TextStyle(fontSize: 10, color: isRed ? Colors.red[900] : Colors.black, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal)),
+                                      ));
+                                    }).toList(),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Filtros a la derecha
+            const SizedBox(width: 24),
+            Expanded(
+              flex: 1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('ESPECIES', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ...especies.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))),
+                  const SizedBox(height: 12),
+                  const Text('Descripción CeCo', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ...ceCoDesc.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))),
+                  const SizedBox(height: 12),
+                  const Text('Labor', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ...laboresFiltro.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class EstadoTarjasScreen extends StatelessWidget {
+  const EstadoTarjasScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Datos simulados
+    final fundos = ['SANTA VICTORIA', 'SANTA INES', 'SAN MANUEL', 'MAITEN GIGANTE', 'HOSPITAL', 'CULLIPEUMO', 'CAMPO CHOCALAN', 'CAMPO ITAHUE'];
+    final tarjasPropio = [6, 6, 40, 18, 19, 18, 24, 42];
+    final tarjasPropioRevisada = [6, 78, 40, 18, 4, 18, 24, 24];
+    final tarjasContratista = [0, 0, 18, 0, 24, 2, 2, 0];
+    final tarjasContratistaRevisada = [0, 0, 18, 0, 34, 2, 2, 0];
+    final semanas = ['abril 16', 'abril 17', 'mayo', 'mayo 18'];
+    final pendientesContratista = [71, 55, 10, 16];
+    final semanasPropio = [1, 23, 2, 54];
+    final semanasContratista = [0, 0, 243, 0];
+    final fundosBar = ['SANTA VICTORIA', 'SAN MANUEL', 'MAITEN GIGANTE', 'CAMPO CHOCALAN'];
+    final pendientesFinalizacion = [71, 55, 10, 16];
+    final lineFundos = ['CAMPO ITAHUE', 'CAMPO CHOCALAN', 'SAN MANUEL', 'HOSPITAL', 'SANTA VICTORIA', 'CULLIPEUMO', 'MAITEN GIGANTE', 'SANTA INES'];
+    final promRevision = [7.8, 7.2, 4.9, 4.8, 3.5, 1.5, 1.8, 1.6];
+    final promAprobacion = [5.4, 6.5, 2.8, 2.5, 2.2, 0.4, 0.8, 0.2];
+    final promCreacion = [2.4, 0.6, 2.1, 2.3, 1.3, 0.4, 1.0, 1.6];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Estado Tarjas'),
+        backgroundColor: Colors.green[700],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          children: [
+            // Primera fila: 2 gráficos de barras horizontales apiladas
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Tarjas Pendientes Aprobacion Personal Propio', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            height: 120,
+                            child: BarChart(
+                              BarChartData(
+                                barGroups: List.generate(fundos.length, (i) => BarChartGroupData(x: i, barRods: [
+                                  BarChartRodData(toY: tarjasPropio[i].toDouble(), color: Colors.grey[600], width: 12),
+                                  BarChartRodData(toY: tarjasPropioRevisada[i].toDouble(), color: Colors.orange[300], width: 12),
+                                ])),
+                                titlesData: FlTitlesData(
+                                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => v.toInt() < fundos.length ? Text(fundos[v.toInt()], style: const TextStyle(fontSize: 9)) : const SizedBox())),
+                                  bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                ),
+                                gridData: FlGridData(show: true),
+                                barTouchData: BarTouchData(enabled: false),
+                                alignment: BarChartAlignment.spaceBetween,
+                                maxY: 80,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Container(width: 16, height: 8, color: Colors.grey[600]),
+                              const SizedBox(width: 4),
+                              const Text('creada', style: TextStyle(fontSize: 10)),
+                              const SizedBox(width: 12),
+                              Container(width: 16, height: 8, color: Colors.orange[300]),
+                              const SizedBox(width: 4),
+                              const Text('revisada', style: TextStyle(fontSize: 10)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Tarjas Pendientes Aprobacion Contratistas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            height: 120,
+                            child: BarChart(
+                              BarChartData(
+                                barGroups: List.generate(fundos.length, (i) => BarChartGroupData(x: i, barRods: [
+                                  BarChartRodData(toY: tarjasContratista[i].toDouble(), color: Colors.grey[600], width: 12),
+                                  BarChartRodData(toY: tarjasContratistaRevisada[i].toDouble(), color: Colors.orange[300], width: 12),
+                                ])),
+                                titlesData: FlTitlesData(
+                                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => v.toInt() < fundos.length ? Text(fundos[v.toInt()], style: const TextStyle(fontSize: 9)) : const SizedBox())),
+                                  bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                ),
+                                gridData: FlGridData(show: true),
+                                barTouchData: BarTouchData(enabled: false),
+                                alignment: BarChartAlignment.spaceBetween,
+                                maxY: 60,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Container(width: 16, height: 8, color: Colors.grey[600]),
+                              const SizedBox(width: 4),
+                              const Text('creada', style: TextStyle(fontSize: 10)),
+                              const SizedBox(width: 12),
+                              Container(width: 16, height: 8, color: Colors.orange[300]),
+                              const SizedBox(width: 4),
+                              const Text('revisada', style: TextStyle(fontSize: 10)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Segunda fila: 2 gráficos de barras verticales
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Tarjas Pendientes por Semana/Mes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            height: 100,
+                            child: BarChart(
+                              BarChartData(
+                                barGroups: List.generate(semanas.length, (i) => BarChartGroupData(x: i, barRods: [
+                                  BarChartRodData(toY: semanasPropio[i].toDouble(), color: Colors.blue[900], width: 12),
+                                  BarChartRodData(toY: semanasContratista[i].toDouble(), color: Colors.green[800], width: 12),
+                                ])),
+                                titlesData: FlTitlesData(
+                                  bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => v.toInt() < semanas.length ? Text(semanas[v.toInt()], style: const TextStyle(fontSize: 9)) : const SizedBox())),
+                                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()}', style: const TextStyle(fontSize: 8)))),
+                                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                ),
+                                gridData: FlGridData(show: true),
+                                barTouchData: BarTouchData(enabled: false),
+                                alignment: BarChartAlignment.spaceBetween,
+                                maxY: 250,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Container(width: 16, height: 8, color: Colors.blue[900]),
+                              const SizedBox(width: 4),
+                              const Text('Contratista', style: TextStyle(fontSize: 10)),
+                              const SizedBox(width: 12),
+                              Container(width: 16, height: 8, color: Colors.green),
+                              const SizedBox(width: 4),
+                              const Text('Propio', style: TextStyle(fontSize: 10)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Tarjas de Contratista Pendientes de Finalizacion', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            height: 100,
+                            child: BarChart(
+                              BarChartData(
+                                barGroups: List.generate(fundosBar.length, (i) => BarChartGroupData(x: i, barRods: [
+                                  BarChartRodData(toY: pendientesFinalizacion[i].toDouble(), color: Colors.green[800], width: 18),
+                                ])),
+                                titlesData: FlTitlesData(
+                                  bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => v.toInt() < fundosBar.length ? Text(fundosBar[v.toInt()], style: const TextStyle(fontSize: 9)) : const SizedBox())),
+                                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()}', style: const TextStyle(fontSize: 8)))),
+                                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                ),
+                                gridData: FlGridData(show: true),
+                                barTouchData: BarTouchData(enabled: false),
+                                alignment: BarChartAlignment.spaceBetween,
+                                maxY: 80,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Tercera fila: gráfico de líneas
+            Card(
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Tiempos de Revision y Aprobacion por Fundo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      height: 120,
+                      child: LineChart(
+                        LineChartData(
+                          minY: 0,
+                          maxY: 10,
+                          titlesData: FlTitlesData(
+                            bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => v.toInt() < lineFundos.length ? Text(lineFundos[v.toInt()], style: const TextStyle(fontSize: 9)) : const SizedBox())),
+                            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()}', style: const TextStyle(fontSize: 8)))),
+                            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          ),
+                          gridData: FlGridData(show: true),
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: List.generate(lineFundos.length, (i) => FlSpot(i.toDouble(), promRevision[i])),
+                              isCurved: true,
+                              color: Colors.orange,
+                              barWidth: 2,
+                              dotData: FlDotData(show: true),
+                            ),
+                            LineChartBarData(
+                              spots: List.generate(lineFundos.length, (i) => FlSpot(i.toDouble(), promAprobacion[i])),
+                              isCurved: true,
+                              color: Colors.blue,
+                              barWidth: 2,
+                              dotData: FlDotData(show: true),
+                            ),
+                            LineChartBarData(
+                              spots: List.generate(lineFundos.length, (i) => FlSpot(i.toDouble(), promCreacion[i])),
+                              isCurved: true,
+                              color: Colors.green,
+                              barWidth: 2,
+                              dotData: FlDotData(show: true),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Container(width: 16, height: 8, color: Colors.orange),
+                        const SizedBox(width: 4),
+                        const Text('Promedio días revision', style: TextStyle(fontSize: 10)),
+                        const SizedBox(width: 12),
+                        Container(width: 16, height: 8, color: Colors.blue),
+                        const SizedBox(width: 4),
+                        const Text('Promedio días aprobacion', style: TextStyle(fontSize: 10)),
+                        const SizedBox(width: 12),
+                        Container(width: 16, height: 8, color: Colors.green),
+                        const SizedBox(width: 4),
+                        const Text('Promedio días desde creacion', style: TextStyle(fontSize: 10)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 } 
