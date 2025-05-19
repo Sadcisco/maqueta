@@ -112,6 +112,7 @@ class _MainScreenState extends State<MainScreen> {
   bool _showFullMonth = false;
   String _filtroPeriodo = 'día'; // 'día', 'semana', 'mes'
   int? _expandedActivityIndex;
+  bool _mostrarTablaDetalle = false;
 
   void _onMenuItemSelected(MenuItem item) {
     print('Seleccionado: \\${item.title}');
@@ -391,288 +392,280 @@ class _MainScreenState extends State<MainScreen> {
           fechaTexto = toBeginningOfSentenceCase(DateFormat('MMMM yyyy', 'es').format(_selectedDate))!;
         }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(32),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // KPIs generales
-                Wrap(
-                  spacing: 18,
-                  runSpacing: 12,
-                  children: const [
-                    _KpiCard(
-                      title: 'Desajuste Total Acumulado CLP',
-                      value: '3 mill.!',
-                      valueColor: Colors.red,
-                      bgColor: Color(0xFFD3D3D3),
-                    ),
-                    _KpiCard(
-                      title: 'Desajuste % Total Acumulado',
-                      value: '0,26 %°',
-                      valueColor: Colors.yellow,
-                      bgColor: Color(0xFFD3D3D3),
-                    ),
-                    _KpiCard(
-                      title: 'Desajuste % Proyectado Temp',
-                      value: '0,25 %°',
-                      valueColor: Colors.yellow,
-                      bgColor: Color(0xFFD3D3D3),
-                    ),
-                    _KpiCard(
-                      title: 'Disponibilidad Real Ppto Temp CLP',
-                      value: '34 mill.!',
-                      valueColor: Colors.green,
-                      bgColor: Color(0xFFD3D3D3),
-                    ),
-                    _KpiCard(
-                      title: 'Ppto Nominal Prox Meses CLP',
-                      value: '38 mill.',
-                      valueColor: Colors.black,
-                      bgColor: Color(0xFFD3D3D3),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                // Header/filtro alineado a la derecha
-                Row(
-                  children: [
-                    Expanded(child: Container()),
-                    ToggleButtons(
-                      isSelected: [
-                        _filtroPeriodo == 'semana',
-                        _filtroPeriodo == 'mes',
-                        _filtroPeriodo == 'día',
-                      ],
-                      onPressed: (i) {
-                        setState(() {
-                          _filtroPeriodo = ['semana', 'mes', 'día'][i];
-                        });
-                      },
-                      children: const [
-                        Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('semana')),
-                        Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('mes')),
-                        Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('día')),
-                      ],
-                    ),
-                    const SizedBox(width: 16),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_left),
-                      onPressed: () {
-                        setState(() {
-                          if (_filtroPeriodo == 'día') {
-                            _selectedDate = _selectedDate.subtract(const Duration(days: 1));
-                          } else if (_filtroPeriodo == 'semana') {
-                            _selectedDate = _selectedDate.subtract(const Duration(days: 7));
-                          } else {
-                            _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1, _selectedDate.day);
-                          }
-                        });
-                      },
-                    ),
-                    Text(
-                      fechaTexto,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right),
-                      onPressed: () {
-                        setState(() {
-                          if (_filtroPeriodo == 'día') {
-                            _selectedDate = _selectedDate.add(const Duration(days: 1));
-                          } else if (_filtroPeriodo == 'semana') {
-                            _selectedDate = _selectedDate.add(const Duration(days: 7));
-                          } else {
-                            _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1, _selectedDate.day);
-                          }
-                        });
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton.icon(
-                      icon: const Icon(Icons.calendar_month),
-                      label: const Text('Calendario'),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return Dialog(
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                              child: SizedBox(
-                                width: 420,
-                                height: 480,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
+        return Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFF6FBF7), Color(0xFFE8F5E9)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // KPIs tipo dashboard
+                  Wrap(
+                    spacing: 18,
+                    runSpacing: 12,
+                    children: [
+                      _KpiCard(
+                        title: 'Desajuste Total Acumulado CLP',
+                        value: '3 mill.!',
+                        valueColor: Colors.red,
+                        bgColor: const Color(0xFFFDEDED),
+                        icon: Icons.trending_down,
+                        borderColor: Colors.red,
+                      ),
+                      _KpiCard(
+                        title: 'Desajuste % Total Acumulado',
+                        value: '0,26 %°',
+                        valueColor: Colors.yellow[800]!,
+                        bgColor: const Color(0xFFFFF8E1),
+                        icon: Icons.percent,
+                        borderColor: Colors.yellow[800]!,
+                      ),
+                      _KpiCard(
+                        title: 'Desajuste % Proyectado Temp',
+                        value: '0,25 %°',
+                        valueColor: Colors.yellow[800]!,
+                        bgColor: const Color(0xFFFFF8E1),
+                        icon: Icons.timeline,
+                        borderColor: Colors.yellow[800]!,
+                      ),
+                      _KpiCard(
+                        title: 'Disponibilidad Real Ppto Temp CLP',
+                        value: '34 mill.!',
+                        valueColor: Colors.green[700]!,
+                        bgColor: const Color(0xFFE8F5E9),
+                        icon: Icons.account_balance_wallet,
+                        borderColor: Colors.green[700]!,
+                      ),
+                      _KpiCard(
+                        title: 'Ppto Nominal Prox Meses CLP',
+                        value: '38 mill.',
+                        valueColor: Colors.green[900]!,
+                        bgColor: const Color(0xFFE8F5E9),
+                        icon: Icons.calendar_month,
+                        borderColor: Colors.green[900]!,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  // Filtros con chips modernos
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Wrap(
+                          spacing: 8,
+                          children: [
+                            FilterChip(
+                              label: const Text('Día'),
+                              selected: _filtroPeriodo == 'día',
+                              onSelected: (_) => setState(() => _filtroPeriodo = 'día'),
+                              selectedColor: AppTheme.primaryLight,
+                            ),
+                            FilterChip(
+                              label: const Text('Semana'),
+                              selected: _filtroPeriodo == 'semana',
+                              onSelected: (_) => setState(() => _filtroPeriodo = 'semana'),
+                              selectedColor: AppTheme.primaryLight,
+                            ),
+                            FilterChip(
+                              label: const Text('Mes'),
+                              selected: _filtroPeriodo == 'mes',
+                              onSelected: (_) => setState(() => _filtroPeriodo = 'mes'),
+                              selectedColor: AppTheme.primaryLight,
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left),
+                        onPressed: () {
+                          setState(() {
+                            if (_filtroPeriodo == 'día') {
+                              _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+                            } else if (_filtroPeriodo == 'semana') {
+                              _selectedDate = _selectedDate.subtract(const Duration(days: 7));
+                            } else {
+                              _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1, _selectedDate.day);
+                            }
+                          });
+                        },
+                      ),
+                      Text(
+                        _filtroPeriodo == 'día'
+                            ? toBeginningOfSentenceCase(DateFormat('EEEE, d MMMM', 'es').format(_selectedDate))!
+                            : _filtroPeriodo == 'semana'
+                                ? 'Semana ${_getWeekNumber(_selectedDate)}'
+                                : toBeginningOfSentenceCase(DateFormat('MMMM yyyy', 'es').format(_selectedDate))!,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.chevron_right),
+                        onPressed: () {
+                          setState(() {
+                            if (_filtroPeriodo == 'día') {
+                              _selectedDate = _selectedDate.add(const Duration(days: 1));
+                            } else if (_filtroPeriodo == 'semana') {
+                              _selectedDate = _selectedDate.add(const Duration(days: 7));
+                            } else {
+                              _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1, _selectedDate.day);
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton.icon(
+                        icon: const Icon(Icons.calendar_month),
+                        label: const Text('Calendario'),
+                        style: TextButton.styleFrom(foregroundColor: AppTheme.primaryDark),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Dialog(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                child: SizedBox(
+                                  width: 420,
+                                  height: 480,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text('Seleccionar fecha', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                            IconButton(
+                                              icon: const Icon(Icons.close),
+                                              onPressed: () => Navigator.of(context).pop(),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        SizedBox(
+                                          height: 360,
+                                          child: _buildCleanCalendar(context),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  // Cards de actividades modernas
+                  ...actividadesFiltradas.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final l = entry.value;
+                    final fecha = l['fecha'] as DateTime;
+                    final String tipo = l['tipo'];
+                    final bool isExpanded = _expandedActivityIndex == i;
+                    final int eficiencia = tipo == 'Riego' ? 88 : 92;
+                    final String calidad = tipo == 'Riego' ? 'Media calidad' : 'Alta calidad';
+                    final bool alerta = eficiencia < 90;
+                    var iconoData = _laborIcons[tipo.replaceAll(' Muestra', '')] ?? {'icon': Icons.task, 'color': Colors.green[900]};
+                    final dynamic icono = iconoData['icon'];
+                    final Color? color = iconoData['color'];
+                    String detalle = tipo == 'Riego' ? '45 lts/persona' : '15 plantas/persona';
+                    String cuarteles = tipo == 'Riego' ? 'Cuartel 1' : 'Cuartel 2, Cuartel 3';
+                    return Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: color ?? Colors.green[100]!, width: 2)),
+                      margin: const EdgeInsets.only(bottom: 24),
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Info principal a la izquierda
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
                                     children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text('Seleccionar fecha', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                                          IconButton(
-                                            icon: const Icon(Icons.close),
-                                            onPressed: () => Navigator.of(context).pop(),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      SizedBox(
-                                        height: 360,
-                                        child: _buildCleanCalendar(context),
+                                      if (icono is IconData)
+                                        Icon(icono, color: color, size: 32),
+                                      if (icono is String)
+                                        Text(icono, style: TextStyle(fontSize: 32, color: color)),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        tipo,
+                                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: color ?? Colors.green[900],
+                                            ),
                                       ),
                                     ],
                                   ),
-                                ),
+                                  const SizedBox(height: 6),
+                                  Text(detalle, style: const TextStyle(fontSize: 15, color: Colors.black87)),
+                                  Text('Cuarteles: $cuarteles', style: const TextStyle(fontSize: 15, color: Colors.black54)),
+                                ],
                               ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                // Cards de actividades
-                ...actividadesFiltradas.asMap().entries.map((entry) {
-                  final i = entry.key;
-                  final l = entry.value;
-                  final fecha = l['fecha'] as DateTime;
-                  final String tipo = l['tipo'];
-                  final bool isExpanded = _expandedActivityIndex == i;
-                  // Simulación de indicadores
-                  final int eficiencia = tipo == 'Riego' ? 88 : 92;
-                  final String calidad = tipo == 'Riego' ? 'Media calidad' : 'Alta calidad';
-                  final bool alerta = eficiencia < 90;
-                  // Detalles y tablas por tipo
-                  List<String> columnas = [];
-                  List<List<String>> datos = [];
-                  String titulo = tipo;
-                  var iconoData = _laborIcons[tipo.replaceAll(' Muestra', '')] ?? {'icon': Icons.task, 'color': Colors.green[900]};
-                  final dynamic icono = iconoData['icon'];
-                  final Color? color = iconoData['color'];
-                  final Color safeColor = (color ?? Colors.green[100]) ?? Colors.green;
-                  String detalle = tipo == 'Riego' ? '45 lts/persona' : '15 plantas/persona';
-                  String cuarteles = tipo == 'Riego' ? 'Cuartel 1' : 'Cuartel 2, Cuartel 3';
-                  if (tipo == 'Riego') {
-                    columnas = ['Fecha', 'Sucursal', 'Cuartel', 'Equipo'];
-                    datos = [
-                      ['7 may 2025, 16:29:45', 'MAITEN GIGANTE', 'AUTUMN CRISP C 6...', 'Equipo 3'],
-                      ['7 may 2025, 16:28:55', 'MAITEN GIGANTE', 'AUTUMN CRISP C 6...', 'Equipo 3'],
-                      ['7 may 2025, 16:26:35', 'MAITEN GIGANTE', 'SWEET GLOBE C 2...', 'Equipo 2'],
-                    ];
-                  } else if (tipo == 'Conteo Poda Carozos') {
-                    columnas = ['Conteo Planta', 'Ramillas', 'variación/pauta %', 'calidad %', 'Cajas / HA proyectadas'];
-                    datos = [
-                      ['120', '35', '5%', '98%', '250'],
-                      ['110', '30', '3%', '95%', '230'],
-                    ];
-                  } else if (tipo == 'Conteo Poda Muestra Carozos') {
-                    columnas = ['Conteo Planta', 'Ramillas'];
-                    datos = [
-                      ['60', '18'],
-                      ['55', '15'],
-                    ];
-                  } else if (tipo == 'Conteo Poda Ciruela') {
-                    columnas = ['Conteo Planta', 'Cm Lineal', 'variación/pauta %', 'calidad %', 'Cajas / HA proyectadas'];
-                    datos = [
-                      ['90', '120', '2%', '97%', '180'],
-                      ['85', '110', '1%', '96%', '170'],
-                    ];
-                  } else if (tipo == 'Conteo Poda Muestra Ciruela') {
-                    columnas = ['Conteo Planta', 'Cm Lineal'];
-                    datos = [
-                      ['45', '60'],
-                      ['50', '65'],
-                    ];
-                  } else if (tipo == 'Conteo Poda Cerezas') {
-                    columnas = ['Conteo Planta', 'Centros frutales', 'variación/pauta %', 'calidad %', 'Cajas / HA proyectadas'];
-                    datos = [
-                      ['60', '15', '4%', '92%', '90'],
-                      ['65', '18', '5%', '93%', '95'],
-                    ];
-                  } else if (tipo == 'Conteo Poda Muestra Cerezas') {
-                    columnas = ['Conteo Planta', 'Centros frutales'];
-                    datos = [
-                      ['30', '7'],
-                      ['32', '8'],
-                    ];
-                  } else if (tipo == 'Conteo Poda Uvas') {
-                    columnas = ['Conteo Planta', 'Promedio cargadores/planta', 'variación/pauta %', 'calidad %', 'Cajas / HA proyectadas'];
-                    datos = [
-                      ['200', '2.5', '3%', '99%', '400'],
-                      ['210', '2.7', '2%', '98%', '420'],
-                    ];
-                  } else if (tipo == 'Conteo Poda Muestra Uvas') {
-                    columnas = ['Conteo Planta', 'Promedio cargadores/planta'];
-                    datos = [
-                      ['100', '1.2'],
-                      ['110', '1.3'],
-                    ];
-                  }
-                  return Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: safeColor, width: 2)),
-                    margin: const EdgeInsets.only(bottom: 20),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Info principal a la izquierda
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            ),
+                            // Indicadores a la derecha
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Row(
-                                  children: [
-                                    if (icono is IconData)
-                                      Icon(icono, color: color, size: 28)
-                                    else if (icono is String)
-                                      Text(icono, style: TextStyle(fontSize: 28, color: color)),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      titulo,
-                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: color ?? Colors.green[900],
-                                          ),
-                                    ),
-                                  ],
+                                // Badge de eficiencia
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: eficiencia >= 90 ? Colors.green[50] : Colors.red[50],
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: eficiencia >= 90 ? Colors.green : Colors.red, width: 1),
+                                  ),
+                                  child: Text('$eficiencia% eficiencia', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: eficiencia >= 90 ? Colors.green[800] : Colors.red)),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(detalle, style: const TextStyle(fontSize: 15, color: Colors.black87)),
-                                Text('Cuarteles: $cuarteles', style: const TextStyle(fontSize: 15, color: Colors.black54)),
+                                // Badge de calidad
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: calidad == 'Alta calidad' ? Colors.green[50] : Colors.yellow[50],
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: calidad == 'Alta calidad' ? Colors.green : Colors.yellow[800]!, width: 1),
+                                  ),
+                                  child: Text(calidad, style: TextStyle(fontSize: 14, color: calidad == 'Alta calidad' ? Colors.green[800] : Colors.yellow[800])),
+                                ),
+                                if (alerta)
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 6),
+                                    child: Icon(Icons.notifications_active, color: Colors.red, size: 22),
+                                  ),
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _expandedActivityIndex = isExpanded ? null : i;
+                                    });
+                                  },
+                                  style: TextButton.styleFrom(foregroundColor: AppTheme.primaryDark),
+                                  child: Text(isExpanded ? 'Ocultar detalle' : 'Ir a detalle'),
+                                ),
                               ],
                             ),
-                          ),
-                          // Indicadores a la derecha
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text('$eficiencia% eficiencia', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                              Text(calidad, style: const TextStyle(fontSize: 14, color: Colors.black54)),
-                              if (alerta)
-                                const Icon(Icons.notifications_active, color: Colors.red, size: 22),
-                            ],
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                }),
-                if (actividadesFiltradas.isEmpty)
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Text('No hay actividades para el periodo seleccionado.', style: Theme.of(context).textTheme.bodyLarge),
-                    ),
-                  ),
-              ],
+                    );
+                  }),
+                  // ... resto de la vista ...
+                ],
+              ),
             ),
           ),
         );
@@ -747,69 +740,84 @@ class _MainScreenState extends State<MainScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // KPIs
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: kpis.map((k) => Expanded(
-                      child: Card(
-                        color: Colors.white,
-                        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          child: Column(
-                            children: [
-                              Text(k['label'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                              const SizedBox(height: 4),
-                              Text(k['value'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: k['color'] as Color)),
-                              if ((k['sub'] as String).isNotEmpty)
-                                Text(k['sub'] as String, style: const TextStyle(fontSize: 12, color: Colors.black54)),
-                            ],
-                          ),
-                        ),
-                      ),
+                  Wrap(
+                    spacing: 18,
+                    runSpacing: 12,
+                    children: kpis.map((k) => _KpiCard(
+                      title: k['label'] as String, 
+                      value: k['value'] as String,
+                      valueColor: k['color'] as Color, 
+                      bgColor: Colors.grey[200]!,
+                      icon: Icons.trending_up,
+                      borderColor: Colors.green[700]!
                     )).toList(),
                   ),
-                  const SizedBox(height: 8),
-                  // Gráficos
+                  const SizedBox(height: 12),
+                  // Gráficos pequeños alineados horizontalmente
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Gráfico de desajustes por labor
+                      // Gráfico de barras horizontales (más pequeño y con valores a la derecha)
                       Expanded(
                         child: Card(
                           elevation: 2,
                           child: Padding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(4),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Mayores Desajustes por Labor MO', style: TextStyle(fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 8),
+                                const Text('Mayores Desajustes por Labor MO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                                 SizedBox(
-                                  height: 180,
-                                  child: BarChart(
-                                    BarChartData(
-                                      alignment: BarChartAlignment.spaceAround,
-                                      maxY: 20,
-                                      minY: -20,
-                                      barTouchData: BarTouchData(enabled: false),
-                                      titlesData: FlTitlesData(
-                                        leftTitles: AxisTitles(
-                                          sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 10))),
+                                  height: 80,
+                                  child: Stack(
+                                    children: [
+                                      BarChart(
+                                        BarChartData(
+                                          alignment: BarChartAlignment.spaceAround,
+                                          maxY: 20,
+                                          minY: -20,
+                                          barTouchData: BarTouchData(enabled: false),
+                                          titlesData: FlTitlesData(
+                                            leftTitles: AxisTitles(
+                                              sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 8))),
+                                            ),
+                                            bottomTitles: AxisTitles(
+                                              sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
+                                                int idx = v.toInt();
+                                                return idx >= 0 && idx < labores.length ? Text(labores[idx], style: const TextStyle(fontSize: 8)) : const SizedBox();
+                                              }),
+                                            ),
+                                            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                          ),
+                                          gridData: FlGridData(show: true),
+                                          barGroups: List.generate(labores.length, (i) => BarChartGroupData(x: i, barRods: [
+                                            BarChartRodData(toY: desajustes[i].toDouble(), color: desajustes[i] < 0 ? Colors.red : Colors.green, width: 8, borderRadius: BorderRadius.circular(2)),
+                                          ])),
                                         ),
-                                        bottomTitles: AxisTitles(
-                                          sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
-                                            int idx = v.toInt();
-                                            return idx >= 0 && idx < labores.length ? Text(labores[idx], style: const TextStyle(fontSize: 10)) : const SizedBox();
-                                          }),
-                                        ),
-                                        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                                       ),
-                                      gridData: FlGridData(show: true),
-                                      barGroups: List.generate(labores.length, (i) => BarChartGroupData(x: i, barRods: [
-                                        BarChartRodData(toY: desajustes[i].toDouble(), color: desajustes[i] < 0 ? Colors.red : Colors.green, width: 16, borderRadius: BorderRadius.circular(4)),
-                                      ])),
-                                    ),
+                                      // Valores a la derecha de cada barra
+                                      Positioned.fill(
+                                        child: LayoutBuilder(
+                                          builder: (context, constraints) {
+                                            return Column(
+                                              children: List.generate(labores.length, (i) {
+                                                return Expanded(
+                                                  child: Row(
+                                                    children: [
+                                                      const SizedBox(width: 4),
+                                                      Expanded(child: Container()),
+                                                      Text('${desajustes[i] > 0 ? '' : ''}${desajustes[i]} mill.', style: TextStyle(fontSize: 9, color: desajustes[i] < 0 ? Colors.red : Colors.green, fontWeight: FontWeight.bold)),
+                                                      const SizedBox(width: 2),
+                                                    ],
+                                                  ),
+                                                );
+                                              }),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -817,20 +825,19 @@ class _MainScreenState extends State<MainScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      // Gráfico de control mensual
+                      const SizedBox(width: 8),
+                      // Gráfico de control mensual (barras y línea superpuesta, más pequeño)
                       Expanded(
                         child: Card(
                           elevation: 2,
                           child: Padding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(4),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Control Presupuestario Mensual', style: TextStyle(fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 8),
+                                const Text('Control Presupuestario Mensual', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
                                 SizedBox(
-                                  height: 180,
+                                  height: 80,
                                   child: Stack(
                                     children: [
                                       BarChart(
@@ -841,12 +848,12 @@ class _MainScreenState extends State<MainScreen> {
                                           barTouchData: BarTouchData(enabled: false),
                                           titlesData: FlTitlesData(
                                             leftTitles: AxisTitles(
-                                              sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 10))),
+                                              sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 8))),
                                             ),
                                             bottomTitles: AxisTitles(
                                               sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
                                                 int idx = v.toInt();
-                                                return idx >= 0 && idx < meses.length ? Text(meses[idx], style: const TextStyle(fontSize: 10)) : const SizedBox();
+                                                return idx >= 0 && idx < meses.length ? Text(meses[idx], style: const TextStyle(fontSize: 8)) : const SizedBox();
                                               }),
                                             ),
                                             rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -854,7 +861,7 @@ class _MainScreenState extends State<MainScreen> {
                                           ),
                                           gridData: FlGridData(show: true),
                                           barGroups: List.generate(meses.length, (i) => BarChartGroupData(x: i, barRods: [
-                                            BarChartRodData(toY: controlMensual[i].toDouble(), color: Colors.green[700], width: 16, borderRadius: BorderRadius.circular(4)),
+                                            BarChartRodData(toY: controlMensual[i].toDouble(), color: Colors.green[700], width: 8, borderRadius: BorderRadius.circular(2)),
                                           ])),
                                         ),
                                       ),
@@ -873,8 +880,8 @@ class _MainScreenState extends State<MainScreen> {
                                                   spots: List.generate(meses.length, (i) => FlSpot(i.toDouble(), controlMensual[i].toDouble() + difMeses[i].toDouble())),
                                                   isCurved: true,
                                                   color: Colors.orange,
-                                                  barWidth: 2,
-                                                  dotData: FlDotData(show: true),
+                                                  barWidth: 1.5,
+                                                  dotData: FlDotData(show: false),
                                                 ),
                                               ],
                                             ),
@@ -891,41 +898,48 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  // Tabla detalle mano de obra
-                  Text('Detalle Costos Mano de Obra', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  // Tablas debajo, ocupando todo el ancho, con fuente más pequeña
                   Card(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        headingRowColor: MaterialStateProperty.all(Colors.green[700]),
-                        headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                        columns: const [
-                          DataColumn(label: Text('Labor')),
-                          DataColumn(label: Text('Costo Acumulado CLP')),
-                          DataColumn(label: Text('Ppto Acumulado CLP')),
-                          DataColumn(label: Text('Diferencia CLP')),
-                          DataColumn(label: Text('Desajuste %')),
-                          DataColumn(label: Text('Costo/Ha USD')),
-                          DataColumn(label: Text('Ppto/Ha USD')),
-                          DataColumn(label: Text('Dif/Ha USD')),
-                          DataColumn(label: Text('Ppto Futuro CLP')),
-                          DataColumn(label: Text('Presupuesto Temp CLP')),
-                          DataColumn(label: Text('Disponibilidad CLP')),
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Detalle Costos Mano de Obra', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: DataTable(
+                              headingRowColor: MaterialStateProperty.all(Colors.green[700]),
+                              headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                              dataRowColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
+                                if (states.contains(MaterialState.selected)) {
+                                  return Colors.green[100];
+                                }
+                                return null;
+                              }),
+                              columns: [
+                                'Labor', 'Costo Acumulado CLP', 'Ppto Acumulado CLP', 'Diferencia CLP', 'Desajuste %', 'Costo/Ha USD', 'Ppto/Ha USD', 'Dif/Ha USD', 'Ppto Futuro CLP', 'Presupuesto Temp CLP', 'Disponibilidad CLP'
+                              ].map((c) => DataColumn(label: Text(c, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10)))).toList(),
+                              rows: tabla.asMap().entries.map((entry) {
+                                final i = entry.key;
+                                final row = entry.value;
+                                final isTotal = i == tabla.length - 1;
+                                return DataRow(
+                                  color: MaterialStateProperty.all(i % 2 == 0 ? Colors.grey[50] : Colors.white),
+                                  cells: row.entries.map((e) {
+                                    final isRed = e.key == 'Diferencia CLP' || e.key == 'Desajuste %';
+                                    return DataCell(Container(
+                                      color: isRed && double.tryParse(row['Desajuste %']?.toString() ?? '0') != null && double.parse(row['Desajuste %']?.toString() ?? '0') > 100 ? Colors.red[100] : null,
+                                      child: Text(e.value.toString(), style: TextStyle(fontSize: 10, color: isRed ? Colors.red[900] : Colors.black, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal)),
+                                    ));
+                                  }).toList(),
+                                );
+                              }).toList(),
+                            ),
+                          ),
                         ],
-                        rows: tabla.map((row) => DataRow(cells: [
-                          DataCell(Text(row['labor'] as String)),
-                          DataCell(Text(row['costo'] as String)),
-                          DataCell(Text(row['ppto'] as String)),
-                          DataCell(Text(row['dif'] as String, style: TextStyle(color: row['dif'].toString().contains('-') ? Colors.red : Colors.black))),
-                          DataCell(Text(row['desajuste'] as String, style: TextStyle(color: row['desajuste'].toString().contains('100') ? Colors.red : Colors.black))),
-                          DataCell(Text(row['costo_ha'] as String)),
-                          DataCell(Text(row['ppto_ha'] as String)),
-                          DataCell(Text(row['dif_ha'] as String, style: TextStyle(color: row['dif_ha'].toString().contains('-') ? Colors.red : Colors.black))),
-                          DataCell(Text(row['ppto_fut'] as String)),
-                          DataCell(Text(row['ppto_temp'] as String)),
-                          DataCell(Text(row['disp'] as String, style: TextStyle(color: row['disp'].toString().contains('-') ? Colors.red : Colors.black))),
-                        ])).toList(),
                       ),
                     ),
                   ),
@@ -940,13 +954,13 @@ class _MainScreenState extends State<MainScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('ESPECIES', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ...especies.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))).toList(),
+                  ...especies.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))),
                   const SizedBox(height: 12),
                   const Text('Descripción CeCo', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ...ceCoDesc.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))).toList(),
+                  ...ceCoDesc.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))),
                   const SizedBox(height: 12),
                   const Text('Labor', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ...laboresFiltro.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))).toList(),
+                  ...laboresFiltro.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))),
                 ],
               ),
             ),
@@ -1515,6 +1529,9 @@ class _MainScreenState extends State<MainScreen> {
         ),
       );
     }
+    if (_selectedMenu!.title == 'Usuarios') {
+      return const AdminPermissionsScreen();
+    }
     // Default case
     return Center(
       child: Text(
@@ -1759,54 +1776,68 @@ class _KpiCard extends StatelessWidget {
   final String value;
   final Color valueColor;
   final Color bgColor;
-  const _KpiCard({required this.title, required this.value, required this.valueColor, required this.bgColor});
+  final IconData icon;
+  final Color borderColor;
+  const _KpiCard({required this.title, required this.value, required this.valueColor, required this.bgColor, required this.icon, required this.borderColor});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 190,
-      height: 90,
+      height: 100, // Un poco más alto
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [bgColor.withOpacity(0.95), Colors.white.withOpacity(0.85)],
+          colors: [bgColor.withOpacity(0.98), Colors.white.withOpacity(0.90)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
+          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 6)),
         ],
         border: Border(
           bottom: BorderSide(color: valueColor, width: 5),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       child: Stack(
         children: [
           // Ícono decorativo
           Positioned(
             top: 0,
             right: 0,
-            child: Icon(Icons.trending_up, color: valueColor.withOpacity(0.18), size: 32),
+            child: Icon(icon, color: valueColor.withOpacity(0.25), size: 34),
           ),
           // Contenido principal
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87)),
-              const SizedBox(height: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 6),
               Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: valueColor,
-                    shadows: [Shadow(color: Colors.black12, blurRadius: 2)],
+                alignment: Alignment.bottomRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 2, right: 2),
+                  child: Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: valueColor.withOpacity(0.92), // Mejor contraste
+                      shadows: [Shadow(color: Colors.black12, blurRadius: 2)],
+                    ),
+                    textAlign: TextAlign.right,
                   ),
-                  textAlign: TextAlign.right,
                 ),
               ),
             ],
@@ -2015,7 +2046,14 @@ class PresupuestoControlDashboardScreen extends StatelessWidget {
                     Wrap(
                       spacing: 18,
                       runSpacing: 12,
-                      children: kpis.map((k) => _KpiCard(title: k['label'] as String, value: k['value'] as String, valueColor: k['color'] as Color, bgColor: Colors.grey[200]!)).toList(),
+                      children: kpis.map((k) => _KpiCard(
+                        title: k['label'] as String, 
+                        value: k['value'] as String,
+                        valueColor: k['color'] as Color, 
+                        bgColor: Colors.grey[200]!,
+                        icon: Icons.trending_up,
+                        borderColor: Colors.green[700]!
+                      )).toList(),
                     ),
                     const SizedBox(height: 12),
                     // Gráficos pequeños alineados horizontalmente
