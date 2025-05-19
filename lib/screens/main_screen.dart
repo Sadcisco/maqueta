@@ -114,6 +114,7 @@ class _MainScreenState extends State<MainScreen> {
   int? _expandedActivityIndex;
 
   void _onMenuItemSelected(MenuItem item) {
+    print('Seleccionado: \\${item.title}');
     setState(() {
       _selectedMenu = item;
     });
@@ -541,6 +542,10 @@ class _MainScreenState extends State<MainScreen> {
                   final fecha = l['fecha'] as DateTime;
                   final String tipo = l['tipo'];
                   final bool isExpanded = _expandedActivityIndex == i;
+                  // Simulación de indicadores
+                  final int eficiencia = tipo == 'Riego' ? 88 : 92;
+                  final String calidad = tipo == 'Riego' ? 'Media calidad' : 'Alta calidad';
+                  final bool alerta = eficiencia < 90;
                   // Detalles y tablas por tipo
                   List<String> columnas = [];
                   List<List<String>> datos = [];
@@ -549,6 +554,8 @@ class _MainScreenState extends State<MainScreen> {
                   final dynamic icono = iconoData['icon'];
                   final Color? color = iconoData['color'];
                   final Color safeColor = (color ?? Colors.green[100]) ?? Colors.green;
+                  String detalle = tipo == 'Riego' ? '45 lts/persona' : '15 plantas/persona';
+                  String cuarteles = tipo == 'Riego' ? 'Cuartel 1' : 'Cuartel 2, Cuartel 3';
                   if (tipo == 'Riego') {
                     columnas = ['Fecha', 'Sucursal', 'Cuartel', 'Equipo'];
                     datos = [
@@ -609,21 +616,23 @@ class _MainScreenState extends State<MainScreen> {
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: safeColor, width: 2)),
                     margin: const EdgeInsets.only(bottom: 20),
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Row(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Info principal a la izquierda
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   children: [
                                     if (icono is IconData)
-                                      Icon(icono, color: color, size: 32)
+                                      Icon(icono, color: color, size: 28)
                                     else if (icono is String)
-                                      Text(icono, style: TextStyle(fontSize: 32, color: color)),
-                                    const SizedBox(width: 10),
+                                      Text(icono, style: TextStyle(fontSize: 28, color: color)),
+                                    const SizedBox(width: 8),
                                     Text(
                                       titulo,
                                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -633,78 +642,24 @@ class _MainScreenState extends State<MainScreen> {
                                     ),
                                   ],
                                 ),
-                              ),
-                              IconButton(
-                                icon: Icon(isExpanded ? Icons.expand_less : Icons.expand_more, color: Colors.grey[600]),
-                                onPressed: () {
-                                  setState(() {
-                                    _expandedActivityIndex = isExpanded ? null : i;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isExpanded)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                            child: Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: safeColor.withOpacity(0.07),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: safeColor, width: 1),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Detalle', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: safeColor)),
-                                    const SizedBox(height: 12),
-                                    Table(
-                                      columnWidths: {
-                                        for (int i = 0; i < columnas.length; i++) i: const FlexColumnWidth(2),
-                                      },
-                                      border: TableBorder(horizontalInside: BorderSide(color: safeColor.withOpacity(0.5))),
-                                      children: [
-                                        TableRow(
-                                          decoration: BoxDecoration(color: safeColor.withOpacity(0.25)),
-                                          children: [
-                                            for (final col in columnas)
-                                              Padding(
-                                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                                child: Text(col, style: TextStyle(fontWeight: FontWeight.bold, color: safeColor)),
-                                              ),
-                                          ],
-                                        ),
-                                        ...datos.map((fila) => TableRow(
-                                              decoration: BoxDecoration(color: Colors.white),
-                                              children: [
-                                                for (final celda in fila)
-                                                  Padding(
-                                                    padding: const EdgeInsets.symmetric(vertical: 8),
-                                                    child: Text(celda, style: const TextStyle(color: Colors.black87)),
-                                                  ),
-                                              ],
-                                            )),
-                                      ],
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        TextButton(
-                                          onPressed: () {},
-                                          child: const Text('Ver Detalle'),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
+                                const SizedBox(height: 4),
+                                Text(detalle, style: const TextStyle(fontSize: 15, color: Colors.black87)),
+                                Text('Cuarteles: $cuarteles', style: const TextStyle(fontSize: 15, color: Colors.black54)),
+                              ],
                             ),
                           ),
-                      ],
+                          // Indicadores a la derecha
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('$eficiencia% eficiencia', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                              Text(calidad, style: const TextStyle(fontSize: 14, color: Colors.black54)),
+                              if (alerta)
+                                const Icon(Icons.notifications_active, color: Colors.red, size: 22),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }),
@@ -752,159 +707,251 @@ class _MainScreenState extends State<MainScreen> {
     if (_selectedMenu!.title == 'Control Presupuestario') {
       // KPIs simulados
       final kpis = [
-        {'label': 'Desajuste CLP Total Acumulado', 'value': '13,51 mill.!', 'color': Colors.red, 'chartData': [FlSpot(0, 10), FlSpot(1, 13), FlSpot(2, 15)]} as Map<String, dynamic>,
-        {'label': 'Desajuste % Acumulado', 'value': '1,67 %°', 'color': Colors.yellow[700], 'chartData': [FlSpot(0, 1.2), FlSpot(1, 1.5), FlSpot(2, 1.67)]} as Map<String, dynamic>,
-        {'label': 'Desajuste % Proyectado Temp', 'value': '1,62 %°', 'color': Colors.yellow[700], 'chartData': [FlSpot(0, 1.5), FlSpot(1, 1.6), FlSpot(2, 1.62)]} as Map<String, dynamic>,
-        {'label': 'Ppto Nominal Prox Meses', 'value': '21,99 mill.', 'color': Colors.green[700], 'chartData': [FlSpot(0, 18), FlSpot(1, 20), FlSpot(2, 21.99)]} as Map<String, dynamic>,
-        {'label': 'Disponibilidad Real Ppto Temporada', 'value': '8,48 mill.!', 'color': Colors.green[400], 'chartData': [FlSpot(0, 7), FlSpot(1, 8), FlSpot(2, 8.48)]} as Map<String, dynamic>,
+        {'label': 'Desajuste CLP Total Acumulado', 'value': '13,51 mill.!', 'color': Colors.red, 'sub': ''},
+        {'label': 'Desajuste % Total Acumulado', 'value': '1,67 %°', 'color': Colors.yellow[700], 'sub': ''},
+        {'label': 'Desajuste % Proyectado Temp', 'value': '1,62 %°', 'color': Colors.yellow[700], 'sub': ''},
+        {'label': 'Ppto Nominal Prox Meses', 'value': '21,99 mill.', 'color': Colors.green[700], 'sub': 'Ahorro Mensual Contratistas'},
+        {'label': 'Disponibilidad Real Ppto Temporada', 'value': '8,48 mill.!', 'color': Colors.green[400], 'sub': ''},
       ];
-
-      // Datos para gráficos y tablas (simulados)
+      // Datos para gráficos
       final labores = ['ADMINISTRACION', 'RALEO', 'SACAR SIERPES', 'JEFE DE CAMPO', 'COSECHA', 'AMARRAR'];
-      final desajustes = [16, 16, 15, 10, 8, -20];
+      final desajustes = [16, 16, 15, -11, -15, -19];
       final meses = ['mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre', 'enero', 'febrero', 'marzo', 'abril'];
       final controlMensual = [100, 120, 80, 110, 140, 160, 180, 200, 170, 150, 130, 110];
-      final difMensual = [0, 5, -10, 20, -22, 8, 27, 18, 0, 0, 0, 0];
+      final difMensual = [0, 5, 0, 0, -20, 8, 27, 18, 0, 0, 0, 0];
+      final difMeses = [0, 5, 0, 0, -20, 8, 27, 18, 0, 0, 0, 0];
+      // Tabla detalle mano de obra
+      final tabla = [
+        {'labor': 'ADMINISTRACION', 'costo': '63.921.860', 'ppto': '47.430.000', 'dif': '16.491.860', 'desajuste': '34,8%', 'costo_ha': '936', 'ppto_ha': '698', 'dif_ha': '238', 'ppto_fut': '3.570.000', 'ppto_temp': '51.000.000', 'disp': '-12.921.860'},
+        {'labor': 'RALEO', 'costo': '53.887.558', 'ppto': '38.222.186', 'dif': '15.665.372', 'desajuste': '41,0%', 'costo_ha': '1.096', 'ppto_ha': '777', 'dif_ha': '319', 'ppto_fut': '0', 'ppto_temp': '38.222.186', 'disp': '-15.665.372'},
+        {'labor': 'SACAR SIERPES', 'costo': '26.037.786', 'ppto': '11.099.753', 'dif': '14.938.033', 'desajuste': '134,6%', 'costo_ha': '978', 'ppto_ha': '161', 'dif_ha': '817', 'ppto_fut': '0', 'ppto_temp': '11.099.753', 'disp': '-14.938.033'},
+        {'labor': 'HACER ESTRUCTURAS', 'costo': '9.687.095', 'ppto': '0', 'dif': '9.687.095', 'desajuste': '100,0%', 'costo_ha': '376', 'ppto_ha': '0', 'dif_ha': '376', 'ppto_fut': '0', 'ppto_temp': '0', 'disp': '-9.687.095'},
+        {'labor': 'PODA EN VERDE', 'costo': '52.849.723', 'ppto': '43.718.385', 'dif': '9.131.338', 'desajuste': '20,9%', 'costo_ha': '768', 'ppto_ha': '350', 'dif_ha': '350', 'ppto_fut': '0', 'ppto_temp': '43.718.385', 'disp': '-9.131.338'},
+        {'labor': 'RALEO DE YEMAS', 'costo': '8.224.870', 'ppto': '0', 'dif': '8.224.870', 'desajuste': '100,0%', 'costo_ha': '503', 'ppto_ha': '0', 'dif_ha': '503', 'ppto_fut': '3.240.000', 'ppto_temp': '0', 'disp': '-8.224.870'},
+        // ... más filas simuladas ...
+      ];
+      // Filtros simulados
+      final especies = ['CEREZAS', 'CIRUELAS', 'DAMASCO', 'DURAZNOS', 'NECTARINES', 'SIN ESPECIE', 'UVA'];
+      final ceCoDesc = ['795 P3 MA CH', '796 P3 MA CH', 'ALLISON P 28 CHOC', 'ANGELENO 20-12 C CHOC', 'APR 1 P3 MA CH'];
+      final laboresFiltro = ['ADMINISTRACION', 'AMARRA D FORM Y DESBROTA', 'AMARRA DE FORMACION', 'AMARRAR', 'APLICAR AGROQUIMICO', 'APLICAR HERBICIDA'];
 
-      return DashboardScreen(
-        title: 'Control Presupuestario',
-        subtitle: 'Resumen de control presupuestario y faenas',
-        children: [
-          // KPIs
-          Wrap(
-            spacing: 18,
-            runSpacing: 12,
-            children: kpis.map((k) => DashboardCard(
-              title: k['label'] as String,
-              value: k['value'] as String,
-              valueColor: k['color'] as Color,
-              chartData: k['chartData'] as List<FlSpot>,
-            )).toList(),
-          ),
-          const SizedBox(height: 24),
-          // Gráficos
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Gráfico de desajustes por labor
-              Expanded(
-                child: Card(
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Mayores Desajustes por Labor', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 200,
-                          child: BarChart(
-                            BarChartData(
-                              alignment: BarChartAlignment.spaceAround,
-                              maxY: 20,
-                              minY: -20,
-                              barTouchData: BarTouchData(enabled: false),
-                              titlesData: FlTitlesData(
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 10))),
-                                ),
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
-                                    int idx = v.toInt();
-                                    return idx >= 0 && idx < labores.length ? Text(labores[idx], style: const TextStyle(fontSize: 10)) : const SizedBox();
-                                  }),
-                                ),
-                                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                              ),
-                              gridData: FlGridData(show: true),
-                              barGroups: List.generate(labores.length, (i) => BarChartGroupData(x: i, barRods: [
-                                BarChartRodData(toY: desajustes[i].toDouble(), color: desajustes[i] < 0 ? Colors.red : Colors.green, width: 16, borderRadius: BorderRadius.circular(4)),
-                              ])),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Gráfico de control mensual
-              Expanded(
-                child: Card(
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Control Presupuestario Mensual', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 200,
-                          child: Stack(
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Panel principal
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // KPIs
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: kpis.map((k) => Expanded(
+                      child: Card(
+                        color: Colors.white,
+                        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          child: Column(
                             children: [
-                              BarChart(
-                                BarChartData(
-                                  alignment: BarChartAlignment.spaceAround,
-                                  maxY: 220,
-                                  minY: 0,
-                                  barTouchData: BarTouchData(enabled: false),
-                                  titlesData: FlTitlesData(
-                                    leftTitles: AxisTitles(
-                                      sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 10))),
-                                    ),
-                                    bottomTitles: AxisTitles(
-                                      sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
-                                        int idx = v.toInt();
-                                        return idx >= 0 && idx < meses.length ? Text(meses[idx], style: const TextStyle(fontSize: 10)) : const SizedBox();
-                                      }),
-                                    ),
-                                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                  ),
-                                  gridData: FlGridData(show: true),
-                                  barGroups: List.generate(meses.length, (i) => BarChartGroupData(x: i, barRods: [
-                                    BarChartRodData(toY: controlMensual[i].toDouble(), color: Colors.green[700], width: 16, borderRadius: BorderRadius.circular(4)),
-                                  ])),
-                                ),
-                              ),
-                              // Línea de diferencia superpuesta
-                              Positioned.fill(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 8, bottom: 8),
-                                  child: LineChart(
-                                    LineChartData(
-                                      minY: -40,
-                                      maxY: 220,
-                                      titlesData: FlTitlesData(show: false),
-                                      gridData: FlGridData(show: false),
-                                      lineBarsData: [
-                                        LineChartBarData(
-                                          spots: List.generate(meses.length, (i) => FlSpot(i.toDouble(), controlMensual[i].toDouble() + difMensual[i].toDouble())),
-                                          isCurved: true,
-                                          color: Colors.blue,
-                                          barWidth: 2,
-                                          dotData: FlDotData(show: true),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              Text(k['label'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              const SizedBox(height: 4),
+                              Text(k['value'] as String, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: k['color'] as Color)),
+                              if ((k['sub'] as String).isNotEmpty)
+                                Text(k['sub'] as String, style: const TextStyle(fontSize: 12, color: Colors.black54)),
                             ],
                           ),
                         ),
-                      ],
+                      ),
+                    )).toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  // Gráficos
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Gráfico de desajustes por labor
+                      Expanded(
+                        child: Card(
+                          elevation: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Mayores Desajustes por Labor MO', style: TextStyle(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  height: 180,
+                                  child: BarChart(
+                                    BarChartData(
+                                      alignment: BarChartAlignment.spaceAround,
+                                      maxY: 20,
+                                      minY: -20,
+                                      barTouchData: BarTouchData(enabled: false),
+                                      titlesData: FlTitlesData(
+                                        leftTitles: AxisTitles(
+                                          sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 10))),
+                                        ),
+                                        bottomTitles: AxisTitles(
+                                          sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
+                                            int idx = v.toInt();
+                                            return idx >= 0 && idx < labores.length ? Text(labores[idx], style: const TextStyle(fontSize: 10)) : const SizedBox();
+                                          }),
+                                        ),
+                                        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                      ),
+                                      gridData: FlGridData(show: true),
+                                      barGroups: List.generate(labores.length, (i) => BarChartGroupData(x: i, barRods: [
+                                        BarChartRodData(toY: desajustes[i].toDouble(), color: desajustes[i] < 0 ? Colors.red : Colors.green, width: 16, borderRadius: BorderRadius.circular(4)),
+                                      ])),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Gráfico de control mensual
+                      Expanded(
+                        child: Card(
+                          elevation: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Control Presupuestario Mensual', style: TextStyle(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  height: 180,
+                                  child: Stack(
+                                    children: [
+                                      BarChart(
+                                        BarChartData(
+                                          alignment: BarChartAlignment.spaceAround,
+                                          maxY: 220,
+                                          minY: 0,
+                                          barTouchData: BarTouchData(enabled: false),
+                                          titlesData: FlTitlesData(
+                                            leftTitles: AxisTitles(
+                                              sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, _) => Text('${v.toInt()} mill.', style: const TextStyle(fontSize: 10))),
+                                            ),
+                                            bottomTitles: AxisTitles(
+                                              sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, meta) {
+                                                int idx = v.toInt();
+                                                return idx >= 0 && idx < meses.length ? Text(meses[idx], style: const TextStyle(fontSize: 10)) : const SizedBox();
+                                              }),
+                                            ),
+                                            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                          ),
+                                          gridData: FlGridData(show: true),
+                                          barGroups: List.generate(meses.length, (i) => BarChartGroupData(x: i, barRods: [
+                                            BarChartRodData(toY: controlMensual[i].toDouble(), color: Colors.green[700], width: 16, borderRadius: BorderRadius.circular(4)),
+                                          ])),
+                                        ),
+                                      ),
+                                      // Línea de diferencia superpuesta
+                                      Positioned.fill(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(top: 8, bottom: 8),
+                                          child: LineChart(
+                                            LineChartData(
+                                              minY: -40,
+                                              maxY: 220,
+                                              titlesData: FlTitlesData(show: false),
+                                              gridData: FlGridData(show: false),
+                                              lineBarsData: [
+                                                LineChartBarData(
+                                                  spots: List.generate(meses.length, (i) => FlSpot(i.toDouble(), controlMensual[i].toDouble() + difMeses[i].toDouble())),
+                                                  isCurved: true,
+                                                  color: Colors.orange,
+                                                  barWidth: 2,
+                                                  dotData: FlDotData(show: true),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Tabla detalle mano de obra
+                  Text('Detalle Costos Mano de Obra', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Card(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        headingRowColor: MaterialStateProperty.all(Colors.green[700]),
+                        headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                        columns: const [
+                          DataColumn(label: Text('Labor')),
+                          DataColumn(label: Text('Costo Acumulado CLP')),
+                          DataColumn(label: Text('Ppto Acumulado CLP')),
+                          DataColumn(label: Text('Diferencia CLP')),
+                          DataColumn(label: Text('Desajuste %')),
+                          DataColumn(label: Text('Costo/Ha USD')),
+                          DataColumn(label: Text('Ppto/Ha USD')),
+                          DataColumn(label: Text('Dif/Ha USD')),
+                          DataColumn(label: Text('Ppto Futuro CLP')),
+                          DataColumn(label: Text('Presupuesto Temp CLP')),
+                          DataColumn(label: Text('Disponibilidad CLP')),
+                        ],
+                        rows: tabla.map((row) => DataRow(cells: [
+                          DataCell(Text(row['labor'] as String)),
+                          DataCell(Text(row['costo'] as String)),
+                          DataCell(Text(row['ppto'] as String)),
+                          DataCell(Text(row['dif'] as String, style: TextStyle(color: row['dif'].toString().contains('-') ? Colors.red : Colors.black))),
+                          DataCell(Text(row['desajuste'] as String, style: TextStyle(color: row['desajuste'].toString().contains('100') ? Colors.red : Colors.black))),
+                          DataCell(Text(row['costo_ha'] as String)),
+                          DataCell(Text(row['ppto_ha'] as String)),
+                          DataCell(Text(row['dif_ha'] as String, style: TextStyle(color: row['dif_ha'].toString().contains('-') ? Colors.red : Colors.black))),
+                          DataCell(Text(row['ppto_fut'] as String)),
+                          DataCell(Text(row['ppto_temp'] as String)),
+                          DataCell(Text(row['disp'] as String, style: TextStyle(color: row['disp'].toString().contains('-') ? Colors.red : Colors.black))),
+                        ])).toList(),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+            // Filtros a la derecha
+            const SizedBox(width: 24),
+            Expanded(
+              flex: 1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('ESPECIES', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ...especies.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))).toList(),
+                  const SizedBox(height: 12),
+                  const Text('Descripción CeCo', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ...ceCoDesc.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))).toList(),
+                  const SizedBox(height: 12),
+                  const Text('Labor', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ...laboresFiltro.map((e) => CheckboxListTile(value: false, onChanged: null, title: Text(e, style: const TextStyle(fontSize: 13)))).toList(),
+                ],
+              ),
+            ),
+          ],
+        ),
       );
     }
     if (_selectedMenu!.title == 'Estado Tarjas' || _selectedMenu!.title == 'Estado tarja') {
