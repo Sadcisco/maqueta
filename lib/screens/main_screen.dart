@@ -401,222 +401,230 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+          padding: const EdgeInsets.all(32),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
                   // KPIs tipo dashboard
-                  Wrap(
-                    spacing: 18,
-                    runSpacing: 12,
+                Wrap(
+                  spacing: 18,
+                  runSpacing: 12,
                     children: [
-                      _KpiCard(
-                        title: 'Desajuste Total Acumulado CLP',
-                        value: '3 mill.!',
-                        valueColor: Colors.red,
+                    _KpiCard(
+                      title: 'Desajuste Total Acumulado CLP',
+                      value: '3 mill.!',
+                      valueColor: Colors.red,
                         bgColor: const Color(0xFFFDEDED),
                         icon: Icons.trending_down,
                         borderColor: Colors.red,
-                      ),
-                      _KpiCard(
-                        title: 'Desajuste % Total Acumulado',
-                        value: '0,26 %°',
+                    ),
+                    _KpiCard(
+                      title: 'Desajuste % Total Acumulado',
+                      value: '0,26 %°',
                         valueColor: Colors.yellow[800]!,
                         bgColor: const Color(0xFFFFF8E1),
                         icon: Icons.percent,
                         borderColor: Colors.yellow[800]!,
-                      ),
-                      _KpiCard(
-                        title: 'Desajuste % Proyectado Temp',
-                        value: '0,25 %°',
+                    ),
+                    _KpiCard(
+                      title: 'Desajuste % Proyectado Temp',
+                      value: '0,25 %°',
                         valueColor: Colors.yellow[800]!,
                         bgColor: const Color(0xFFFFF8E1),
                         icon: Icons.timeline,
                         borderColor: Colors.yellow[800]!,
-                      ),
-                      _KpiCard(
-                        title: 'Disponibilidad Real Ppto Temp CLP',
-                        value: '34 mill.!',
+                    ),
+                    _KpiCard(
+                      title: 'Disponibilidad Real Ppto Temp CLP',
+                      value: '34 mill.!',
                         valueColor: Colors.green[700]!,
                         bgColor: const Color(0xFFE8F5E9),
                         icon: Icons.account_balance_wallet,
                         borderColor: Colors.green[700]!,
-                      ),
-                      _KpiCard(
-                        title: 'Ppto Nominal Prox Meses CLP',
-                        value: '38 mill.',
+                    ),
+                    _KpiCard(
+                      title: 'Ppto Nominal Prox Meses CLP',
+                      value: '38 mill.',
                         valueColor: Colors.green[900]!,
                         bgColor: const Color(0xFFE8F5E9),
                         icon: Icons.calendar_month,
                         borderColor: Colors.green[900]!,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
                   const SizedBox(height: 28),
                   // Filtros con chips modernos
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Wrap(
-                          spacing: 8,
-                          children: [
-                            FilterChip(
-                              label: const Text('Día'),
-                              selected: _filtroPeriodo == 'día',
-                              onSelected: (_) => setState(() => _filtroPeriodo = 'día'),
-                              selectedColor: AppTheme.primaryLight,
-                            ),
-                            FilterChip(
-                              label: const Text('Semana'),
-                              selected: _filtroPeriodo == 'semana',
-                              onSelected: (_) => setState(() => _filtroPeriodo = 'semana'),
-                              selectedColor: AppTheme.primaryLight,
-                            ),
-                            FilterChip(
-                              label: const Text('Mes'),
-                              selected: _filtroPeriodo == 'mes',
-                              onSelected: (_) => setState(() => _filtroPeriodo = 'mes'),
-                              selectedColor: AppTheme.primaryLight,
-                            ),
-                          ],
-                        ),
+                Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.green[100]!),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.chevron_left),
-                        onPressed: () {
-                          setState(() {
-                            if (_filtroPeriodo == 'día') {
-                              _selectedDate = _selectedDate.subtract(const Duration(days: 1));
-                            } else if (_filtroPeriodo == 'semana') {
-                              _selectedDate = _selectedDate.subtract(const Duration(days: 7));
-                            } else {
-                              _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1, _selectedDate.day);
-                            }
-                          });
-                        },
+                      child: ToggleButtons(
+                        borderRadius: BorderRadius.circular(16),
+                      isSelected: [
+                          _filtroPeriodo == 'día',
+                        _filtroPeriodo == 'semana',
+                        _filtroPeriodo == 'mes',
+                      ],
+                        onPressed: (int index) {
+                        setState(() {
+                            if (index == 0) _filtroPeriodo = 'día';
+                            if (index == 1) _filtroPeriodo = 'semana';
+                            if (index == 2) _filtroPeriodo = 'mes';
+                        });
+                      },
+                        color: Colors.green[800],
+                        selectedColor: Colors.white,
+                        fillColor: AppTheme.primaryLight,
+                        borderColor: Colors.transparent,
+                        selectedBorderColor: Colors.green[400],
+                        constraints: const BoxConstraints(minWidth: 70, minHeight: 38),
+                      children: const [
+                          Text('Día', style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text('Semana', style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text('Mes', style: TextStyle(fontWeight: FontWeight.w600)),
+                        ],
                       ),
-                      Text(
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left),
+                      onPressed: () {
+                        setState(() {
+                          if (_filtroPeriodo == 'día') {
+                            _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+                          } else if (_filtroPeriodo == 'semana') {
+                            _selectedDate = _selectedDate.subtract(const Duration(days: 7));
+                          } else {
+                            _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1, _selectedDate.day);
+                          }
+                        });
+                      },
+                    ),
+                    Text(
                         _filtroPeriodo == 'día'
                             ? toBeginningOfSentenceCase(DateFormat('EEEE, d MMMM', 'es').format(_selectedDate))!
                             : _filtroPeriodo == 'semana'
                                 ? 'Semana ${_getWeekNumber(_selectedDate)}'
                                 : toBeginningOfSentenceCase(DateFormat('MMMM yyyy', 'es').format(_selectedDate))!,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.chevron_right),
-                        onPressed: () {
-                          setState(() {
-                            if (_filtroPeriodo == 'día') {
-                              _selectedDate = _selectedDate.add(const Duration(days: 1));
-                            } else if (_filtroPeriodo == 'semana') {
-                              _selectedDate = _selectedDate.add(const Duration(days: 7));
-                            } else {
-                              _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1, _selectedDate.day);
-                            }
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton.icon(
-                        icon: const Icon(Icons.calendar_month),
-                        label: const Text('Calendario'),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right),
+                      onPressed: () {
+                        setState(() {
+                          if (_filtroPeriodo == 'día') {
+                            _selectedDate = _selectedDate.add(const Duration(days: 1));
+                          } else if (_filtroPeriodo == 'semana') {
+                            _selectedDate = _selectedDate.add(const Duration(days: 7));
+                          } else {
+                            _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1, _selectedDate.day);
+                          }
+                        });
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      icon: const Icon(Icons.calendar_month),
+                      label: const Text('Calendario'),
                         style: TextButton.styleFrom(foregroundColor: AppTheme.primaryDark),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return Dialog(
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                child: SizedBox(
-                                  width: 420,
-                                  height: 480,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(24),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text('Seleccionar fecha', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                                            IconButton(
-                                              icon: const Icon(Icons.close),
-                                              onPressed: () => Navigator.of(context).pop(),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        SizedBox(
-                                          height: 360,
-                                          child: _buildCleanCalendar(context),
-                                        ),
-                                      ],
-                                    ),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Dialog(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              child: SizedBox(
+                                width: 420,
+                                height: 480,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text('Seleccionar fecha', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                          IconButton(
+                                            icon: const Icon(Icons.close),
+                                            onPressed: () => Navigator.of(context).pop(),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      SizedBox(
+                                        height: 360,
+                                        child: _buildCleanCalendar(context),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
                   const SizedBox(height: 28),
                   // Cards de actividades modernas
-                  ...actividadesFiltradas.asMap().entries.map((entry) {
-                    final i = entry.key;
-                    final l = entry.value;
-                    final fecha = l['fecha'] as DateTime;
-                    final String tipo = l['tipo'];
-                    final bool isExpanded = _expandedActivityIndex == i;
+                ...actividadesFiltradas.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final l = entry.value;
+                  final fecha = l['fecha'] as DateTime;
+                  final String tipo = l['tipo'];
+                  final bool isExpanded = _expandedActivityIndex == i;
                     final int eficiencia = tipo == 'Riego' ? 88 : 92;
                     final String calidad = tipo == 'Riego' ? 'Media calidad' : 'Alta calidad';
                     final bool alerta = eficiencia < 90;
-                    var iconoData = _laborIcons[tipo.replaceAll(' Muestra', '')] ?? {'icon': Icons.task, 'color': Colors.green[900]};
-                    final dynamic icono = iconoData['icon'];
-                    final Color? color = iconoData['color'];
+                  var iconoData = _laborIcons[tipo.replaceAll(' Muestra', '')] ?? {'icon': Icons.task, 'color': Colors.green[900]};
+                  final dynamic icono = iconoData['icon'];
+                  final Color? color = iconoData['color'];
                     String detalle = tipo == 'Riego' ? '45 lts/persona' : '15 plantas/persona';
                     String cuarteles = tipo == 'Riego' ? 'Cuartel 1' : 'Cuartel 2, Cuartel 3';
-                    return Card(
+                  return Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: color ?? Colors.green[100]!, width: 2)),
                       margin: const EdgeInsets.only(bottom: 24),
                       color: Colors.white,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                             // Info principal a la izquierda
-                            Expanded(
+                              Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    children: [
-                                      if (icono is IconData)
+                                  children: [
+                                    if (icono is IconData)
                                         Icon(icono, color: color, size: 32),
                                       if (icono is String)
-                                        Text(icono, style: TextStyle(fontSize: 32, color: color)),
-                                      const SizedBox(width: 10),
-                                      Text(
+                                      Text(icono, style: TextStyle(fontSize: 32, color: color)),
+                                    const SizedBox(width: 10),
+                                    Text(
                                         tipo,
-                                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              color: color ?? Colors.green[900],
-                                            ),
-                                      ),
-                                    ],
-                                  ),
+                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: color ?? Colors.green[900],
+                                          ),
+                                    ),
+                                  ],
+                                ),
                                   const SizedBox(height: 6),
                                   Text(detalle, style: const TextStyle(fontSize: 15, color: Colors.black87)),
                                   Text('Cuarteles: $cuarteles', style: const TextStyle(fontSize: 15, color: Colors.black54)),
-                                ],
-                              ),
-                            ),
+                            ],
+                          ),
+                        ),
                             // Indicadores a la derecha
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
@@ -624,7 +632,7 @@ class _MainScreenState extends State<MainScreen> {
                                 // Badge de eficiencia
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
+                              decoration: BoxDecoration(
                                     color: eficiencia >= 90 ? Colors.green[50] : Colors.red[50],
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(color: eficiencia >= 90 ? Colors.green : Colors.red, width: 1),
@@ -647,7 +655,7 @@ class _MainScreenState extends State<MainScreen> {
                                     padding: EdgeInsets.only(top: 6),
                                     child: Icon(Icons.notifications_active, color: Colors.red, size: 22),
                                   ),
-                                TextButton(
+                                        TextButton(
                                   onPressed: () {
                                     setState(() {
                                       _expandedActivityIndex = isExpanded ? null : i;
@@ -655,14 +663,14 @@ class _MainScreenState extends State<MainScreen> {
                                   },
                                   style: TextButton.styleFrom(foregroundColor: AppTheme.primaryDark),
                                   child: Text(isExpanded ? 'Ocultar detalle' : 'Ir a detalle'),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
+                    ),
+                  );
+                }),
                   // ... resto de la vista ...
                 ],
               ),
@@ -1783,64 +1791,65 @@ class _KpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 190,
-      height: 100, // Un poco más alto
+      width: 200,
+      height: 110,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [bgColor.withOpacity(0.98), Colors.white.withOpacity(0.90)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(18),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 6)),
+          BoxShadow(
+            color: Colors.green.withOpacity(0.10),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
         ],
         border: Border(
-          bottom: BorderSide(color: valueColor, width: 5),
+          bottom: BorderSide(color: valueColor.withOpacity(0.7), width: 5),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      child: Stack(
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Ícono decorativo
-          Positioned(
-            top: 0,
-            right: 0,
-            child: Icon(icon, color: valueColor.withOpacity(0.25), size: 34),
+          // Icono con fondo circular translúcido
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: valueColor.withOpacity(0.13),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: valueColor.withOpacity(0.7), size: 28),
           ),
-          // Contenido principal
-          Column(
+          const SizedBox(width: 16),
+          // Texto y valor
+          Expanded(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 6),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 2, right: 2),
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: valueColor.withOpacity(0.92), // Mejor contraste
-                      shadows: [Shadow(color: Colors.black12, blurRadius: 2)],
-                    ),
-                    textAlign: TextAlign.right,
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green[900],
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              const SizedBox(height: 8),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: valueColor.withOpacity(0.92),
+                    letterSpacing: -1.2,
                 ),
               ),
             ],
+            ),
           ),
         ],
       ),
